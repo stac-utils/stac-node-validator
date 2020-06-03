@@ -2,7 +2,7 @@ const $RefParser = require("@apidevtools/json-schema-ref-parser");
 const Ajv = require('ajv');
 const fs = require('fs-extra');
 
-const FILE_TO_VALIDATE = 'C:/Dev/stac-spec/item-spec/examples/CBERS_4_MUX_20181029_177_106_L4.json';
+const FILES = process.argv.slice(2);
 
 const ALL_SCHEMAS = {
 	"$schema": "http://json-schema.org/draft-07/schema#",
@@ -30,10 +30,12 @@ async function run() {
 			allErrors: true
 		});
 		let validate = ajv.compile(schema);
-		let data = await fs.readJson(FILE_TO_VALIDATE);
-		var valid = validate(data);
-		if (!valid) console.log(validate.errors);
-		else console.info("VALID");
+		for(let file of FILES) {
+			let data = await fs.readJson(file);
+			var valid = validate(data);
+			if (!valid) console.log(file, validate.errors);
+			else console.info(file, "VALID");
+		}
 	}
 	catch(err) {
 		console.error(err);
