@@ -1,8 +1,8 @@
 const $RefParser = require("@apidevtools/json-schema-ref-parser");
 const Ajv = require('ajv');
 const fs = require('fs-extra');
-
-const FILES = process.argv.slice(2);
+const klaw = require('klaw');
+const path = require('path')
 
 let COMPILED = {};
 let ajv = new Ajv({
@@ -11,7 +11,13 @@ let ajv = new Ajv({
 
 async function run() {
 	try {
-		for(let file of FILES) {
+		let files = process.argv.slice(2);
+		if (files.length === 0) {
+			console.log('No file specified, validating all examples in STAC spec repository');
+			files = await readExamples();
+		}
+	
+		for(let file of files) {
 			console.log("-- " + file);
 
 			// Read STAC file
@@ -44,9 +50,20 @@ async function run() {
 			console.log("\n");
 		}
 	}
-	catch(err) {
+	catch(error) {
 		console.error(error);
 	}
+}
+
+async function readExamples() {
+	var files = [];
+	for await (let file of klaw('./stac-spec/')) {
+		let relPath = path.relative('./stac-spec/', file.path);
+		if (relPath.includes(path.sep + 'examples' + path.sep) && path.extname(relPath) === '.json') {
+			files.push(file.path);
+		}
+	}
+	return files;
 }
 
 async function loadSchema(name) {
@@ -68,6 +85,11 @@ async function loadSchema(name) {
 			throw "No schema file for " + name;
 		}
 		let fullSchema = await $RefParser.dereference(file);
+		// Make $id unique, otherwise AjV will complain
+		if (!path.isAbsolute(fullSchema.$id)) {
+			fullSchema.$id = file + '#';
+		}
+		// Cache compiled schemas by name
 		COMPILED[name] = ajv.compile(fullSchema);
 		return COMPILED[name];
 	}

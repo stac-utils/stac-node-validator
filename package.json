@@ -14,6 +14,7 @@
   "dependencies": {
     "@apidevtools/json-schema-ref-parser": "^9.0.1",
     "ajv": "^6.12.2",
-    "fs-extra": "^9.0.0"
+    "fs-extra": "^9.0.0",
+    "klaw": "^3.0.0"
   }
 }

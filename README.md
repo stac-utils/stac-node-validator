@@ -11,5 +11,6 @@ Simple proof-of-concept to validate STAC Items, Catalogs and Collections with no
 
 ## Usage
 
+- Validate all examples in the STAC spec repo: `npm test`
 - Validate a single file: `npm test -- /path/to/your/file.json`
 - Validate multiple files: `npm test -- /path/to/your/catalog.json /path/to/your/item.json`
