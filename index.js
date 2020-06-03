@@ -3,20 +3,20 @@ const Ajv = require('ajv');
 const fs = require('fs-extra');
 
 const FILE_TO_VALIDATE = 'C:/Dev/stac-spec/item-spec/examples/CBERS_4_MUX_20181029_177_106_L4.json';
-const STAC_FOLDER = 'c:/Dev/stac-spec';
+
 const ALL_SCHEMAS = {
 	"$schema": "http://json-schema.org/draft-07/schema#",
 	"oneOf": [
 		{
-		"$ref": STAC_FOLDER + "/item-spec/json-schema/item.json"
+		"$ref": "./stac-spec/item-spec/json-schema/item.json"
 		},
 		{
 			"anyOf": [
 				{
-					"$ref": STAC_FOLDER + "/catalog-spec/json-schema/catalog.json"
+					"$ref": "./stac-spec/catalog-spec/json-schema/catalog.json"
 				},
 				{
-					"$ref": STAC_FOLDER + "/collection-spec/json-schema/collection.json"
+					"$ref": "./stac-spec/collection-spec/json-schema/collection.json"
 				}
 			]
 		}
