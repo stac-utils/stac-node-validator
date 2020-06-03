@@ -6,7 +6,8 @@ const path = require('path')
 
 let COMPILED = {};
 let ajv = new Ajv({
-	allErrors: true
+	allErrors: true,
+	missingRefs: "ignore"
 });
 
 async function run() {
@@ -17,6 +18,11 @@ async function run() {
 			files = await readExamples();
 		}
 	
+		let stats = {
+			files: files.length,
+			invalid: 0,
+			valid: 0
+		}
 		for(let file of files) {
 			console.log("-- " + file);
 
@@ -35,6 +41,7 @@ async function run() {
 				names = names.concat(data.stac_extensions.filter(e => !e.includes('://')));
 			}
 
+			let fileValid = true;
 			for(let name of names) {
 				try {
 					let validate = await loadSchema(name);
@@ -43,6 +50,11 @@ async function run() {
 						console.log('---- ' + name + ": invalid");
 						console.warn(validate.errors);
 						console.log("\n");
+						fileValid = false;
+						if (name === 'core') {
+							console.info("--- Validation error in core, skipping extension validation");
+							break;
+						}
 					}
 					else {
 						console.info('---- ' + name + ": valid");
@@ -51,8 +63,12 @@ async function run() {
 					console.error(error);
 				}
 			}
+			fileValid ? stats.valid++ : stats.invalid++;
 			console.log("\n");
 		}
+		console.info("Files: " + stats.files);
+		console.info("Valid: " + stats.valid);
+		console.info("Invalid: " + stats.invalid);
 	}
 	catch(error) {
 		console.error(error);
@@ -80,15 +96,17 @@ async function loadSchema(name) {
 			case 'core':
 				file = './core.json';
 				break;
-			case 'projection':
-				throw "can\'t validate projection extension; schema has an issue in an external dependency";
 			default:
 				file = './stac-spec/extensions/' + name + '/json-schema/schema.json';
 		}
 		if (!await fs.exists(file)) {
 			throw "No schema file for " + name;
 		}
-		let fullSchema = await $RefParser.dereference(file);
+		let fullSchema = await $RefParser.dereference(file, {
+			dereference: {
+			  circular: "ignore"
+			}
+		});
 		// Make $id unique, otherwise AjV will complain
 		if (!path.isAbsolute(fullSchema.$id)) {
 			fullSchema.$id = file + '#';
