@@ -37,16 +37,21 @@ async function run() {
 
 			for(let name of names) {
 				try {
-					console.log('---- ' + name);
 					let validate = await loadSchema(name);
 					var valid = validate(data);
-					if (!valid) console.warn(validate.errors);
-					else console.info("Valid");
+					if (!valid) {
+						console.log('---- ' + name + ": invalid");
+						console.warn(validate.errors);
+						console.log("\n");
+					}
+					else {
+						console.info('---- ' + name + ": valid");
+					}
 				} catch (error) {
 					console.error(error);
 				}
-				console.log("\n");
 			}
+			console.log("\n");
 		}
 	}
 	catch(error) {
