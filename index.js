@@ -69,9 +69,11 @@ async function run() {
 		console.info("Files: " + stats.files);
 		console.info("Valid: " + stats.valid);
 		console.info("Invalid: " + stats.invalid);
+		process.exit(stats.invalid);
 	}
 	catch(error) {
 		console.error(error);
+		process.exit(1);
 	}
 }
 
