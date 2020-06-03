@@ -15,7 +15,13 @@ async function run() {
 		let files = process.argv.slice(2);
 		if (files.length === 0) {
 			console.log('No file specified, validating all examples in STAC spec repository');
-			files = await readExamples();
+			files = await readExamples('./stac-spec/');
+		}
+		else if (files.length === 1) {
+			let stat = await fs.lstat(files[0]);
+			if (stat.isDirectory()) {
+				files = await readExamples(files[0]);
+			}
 		}
 	
 		let stats = {
@@ -77,10 +83,10 @@ async function run() {
 	}
 }
 
-async function readExamples() {
+async function readExamples(folder) {
 	var files = [];
-	for await (let file of klaw('./stac-spec/')) {
-		let relPath = path.relative('./stac-spec/', file.path);
+	for await (let file of klaw(folder)) {
+		let relPath = path.relative(folder, file.path);
 		if (relPath.includes(path.sep + 'examples' + path.sep) && path.extname(relPath) === '.json') {
 			files.push(file.path);
 		}
@@ -96,10 +102,10 @@ async function loadSchema(name) {
 		let file;
 		switch(name) {
 			case 'core':
-				file = './core.json';
+				file = path.join(__dirname, './core.json');
 				break;
 			default:
-				file = './stac-spec/extensions/' + name + '/json-schema/schema.json';
+				file = path.join(__dirname, './stac-spec/extensions/' + name + '/json-schema/schema.json');
 		}
 		if (!await fs.exists(file)) {
 			throw "No schema file for " + name;
