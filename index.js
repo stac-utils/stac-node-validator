@@ -47,7 +47,6 @@ async function run() {
 				}
 				console.log("\n");
 			}
-			console.log("\n");
 		}
 	}
 	catch(error) {
