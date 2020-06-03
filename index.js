@@ -119,4 +119,6 @@ async function loadSchema(name) {
 	}
 }
 
-run();
+module.exports = async () => {
+	await run();
+};

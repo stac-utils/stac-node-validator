@@ -2,15 +2,33 @@
   "name": "stac-node-validator",
   "version": "0.1.0",
   "description": "STAC Validator for NodeJS",
-  "main": "index.js",
-  "scripts": {
-    "test": "node index.js"
-  },
-  "keywords": [
-    "stac"
-  ],
   "author": "Matthias Mohr",
   "license": "Apache-2.0",
+  "keywords": [
+    "stac",
+    "validator"
+  ],
+  "homepage": "https://github.com/m-mohr/stac-node-validator",
+  "bugs": {
+    "url": "https://github.com/m-mohr/stac-node-validator/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/m-mohr/stac-node-validator.git"
+  },
+  "main": "index.js",
+  "bin": {
+    "stac-node-validator": "./bin/cli.js"
+  },
+  "scripts": {
+    "test": "node ./bin/cli.js"
+  },
+  "files": [
+    "stac-spec/*/json-schema/*.json",
+    "core.json",
+    "bin/cli.js",
+    "index.js"
+  ],
   "dependencies": {
     "@apidevtools/json-schema-ref-parser": "^9.0.1",
     "ajv": "^6.12.2",
