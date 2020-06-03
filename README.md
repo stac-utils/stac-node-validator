@@ -2,7 +2,7 @@
 
 Simple proof-of-concept to validate STAC Items, Catalogs, Collections and core extensions with node.
 
-Version: 0.2.0 - supports STAC 1.0.0-beta.1
+Version: 0.2.1 - supports STAC 1.0.0-beta.1
 
 ## Setup
 

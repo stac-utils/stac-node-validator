@@ -1,6 +1,6 @@
 {
   "name": "stac-node-validator",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "STAC Validator for NodeJS",
   "author": "Matthias Mohr",
   "license": "Apache-2.0",
@@ -25,6 +25,7 @@
   },
   "files": [
     "stac-spec/*/json-schema/*.json",
+    "stac-spec/*/*/json-schema/*.json",
     "core.json",
     "bin/cli.js",
     "index.js"
