@@ -4,41 +4,72 @@ const fs = require('fs-extra');
 
 const FILES = process.argv.slice(2);
 
-const ALL_SCHEMAS = {
-	"$schema": "http://json-schema.org/draft-07/schema#",
-	"oneOf": [
-		{
-		"$ref": "./stac-spec/item-spec/json-schema/item.json"
-		},
-		{
-			"anyOf": [
-				{
-					"$ref": "./stac-spec/catalog-spec/json-schema/catalog.json"
-				},
-				{
-					"$ref": "./stac-spec/collection-spec/json-schema/collection.json"
-				}
-			]
-		}
-	]
-};
+let COMPILED = {};
+let ajv = new Ajv({
+	allErrors: true
+});
 
 async function run() {
 	try {
-		let schema = await $RefParser.dereference(ALL_SCHEMAS);
-		let ajv = new Ajv({
-			allErrors: true
-		});
-		let validate = ajv.compile(schema);
 		for(let file of FILES) {
+			console.log("-- " + file);
+
+			// Read STAC file
 			let data = await fs.readJson(file);
-			var valid = validate(data);
-			if (!valid) console.log(file, validate.errors);
-			else console.info(file, "VALID");
+
+			if (data.stac_version !== '1.0.0-beta.1') {
+				console.error("Can only validate STAC version 1.0.0-beta.1\n");
+				continue;
+			}
+			
+			// Get all schema names to validate against
+			let names = ['core'];
+			if (Array.isArray(data.stac_extensions)) {
+				// Filter out all references to external extension schemas (not supported yet)
+				names = names.concat(data.stac_extensions.filter(e => !e.includes('://')));
+			}
+
+			for(let name of names) {
+				try {
+					console.log('---- ' + name);
+					let validate = await loadSchema(name);
+					var valid = validate(data);
+					if (!valid) console.warn(validate.errors);
+					else console.info("Valid");
+				} catch (error) {
+					console.error(error);
+				}
+				console.log("\n");
+			}
+			console.log("\n");
 		}
 	}
 	catch(err) {
-		console.error(err);
+		console.error(error);
+	}
+}
+
+async function loadSchema(name) {
+	if (typeof COMPILED[name] !== 'undefined') {
+		return COMPILED[name];
+	}
+	else {
+		let file;
+		switch(name) {
+			case 'core':
+				file = './core.json';
+				break;
+			case 'projection':
+				throw "can\'t validate projection extension; schema has an issue in an external dependency";
+			default:
+				file = './stac-spec/extensions/' + name + '/json-schema/schema.json';
+		}
+		if (!await fs.exists(file)) {
+			throw "No schema file for " + name;
+		}
+		let fullSchema = await $RefParser.dereference(file);
+		COMPILED[name] = ajv.compile(fullSchema);
+		return COMPILED[name];
 	}
 }
 
