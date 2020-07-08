@@ -2,7 +2,12 @@
 
 Simple proof-of-concept to validate STAC Items, Catalogs, Collections and core extensions with node.
 
-Version: 0.2.1 - supports STAC 1.0.0-beta.1
+## Versions
+
+| STAC Node Validator Version | Supported STAC Versions |
+| --------------------------- | ----------------------- |
+| 0.2.1                       | 1.0.0-beta.1            |
+| 0.3.0-beta.1                | >= 1.0.0-beta.2         |
 
 ## Setup
 
@@ -14,7 +19,14 @@ Version: 0.2.1 - supports STAC 1.0.0-beta.1
 - Validate a single file: `stac-node-validator /path/to/your/file.json`
 - Validate multiple files: `stac-node-validator /path/to/your/catalog.json /path/to/your/item.json`
 - Validate a single folder (considers all `json` files in `examples` folders): `stac-node-validator ./stac-spec`
-- Validate all examples in the STAC spec repo (only present if installed from GitHub): `stac-node-validator`
+
+### Validate against other versions
+
+Add one of the following options to any of the commands above:
+
+- Validate against the schemas in the STAC dev branch: ` --dev`
+    Note that `stac_version` in STAC files must contain the version number of the last released STAC version.
+- Validate against schemas in a local STAC folder: ` --schemas /path/to/stac/folder`
 
 ### Development
 

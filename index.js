@@ -3,6 +3,8 @@ const Ajv = require('ajv');
 const fs = require('fs-extra');
 const klaw = require('klaw');
 const path = require('path')
+const minimist = require('minimist');
+const compareVersions = require('compare-versions');
 
 let COMPILED = {};
 let ajv = new Ajv({
@@ -12,15 +14,32 @@ let ajv = new Ajv({
 
 async function run() {
 	try {
-		let files = process.argv.slice(2);
+		let args = minimist(process.argv.slice(2));
+
+		let files = args._;
 		if (files.length === 0) {
-			console.log('No file specified, validating all examples in STAC spec repository');
-			files = await readExamples('./stac-spec/');
+			throw new Error('No file specified, validating all examples in STAC spec repository');
 		}
 		else if (files.length === 1) {
 			let stat = await fs.lstat(files[0]);
 			if (stat.isDirectory()) {
 				files = await readExamples(files[0]);
+			}
+		}
+
+		let dev = Boolean(typeof args.dev !== 'undefined');
+		if (dev) {
+			console.info("Validating against the dev branch!");
+		}
+
+		let schemaFolder = null;
+		if (typeof args.schemas === 'string') {
+			let stat = await fs.lstat(args.schemas);
+			if (stat.isDirectory()) {
+				schemaFolder = args.schemas;
+			}
+			else {
+				throw new Error('Schema folder is not a valid directory');
 			}
 		}
 	
@@ -30,13 +49,14 @@ async function run() {
 			valid: 0
 		}
 		for(let file of files) {
-			console.log("-- " + file);
-
 			// Read STAC file
 			let data = await fs.readJson(file);
+		
+			let version = data.stac_version;
+			console.log("-- " + file + " (" + version + ")");
 
-			if (data.stac_version !== '1.0.0-beta.1') {
-				console.error("Can only validate STAC version 1.0.0-beta.1\n");
+			if (!dev && compareVersions(version, '1.0.0-beta.2', '>=')) {
+				console.error("Can only validate STAC version >= 1.0.0-beta.2\n");
 				continue;
 			}
 			
@@ -44,13 +64,20 @@ async function run() {
 			let names = ['core'];
 			if (Array.isArray(data.stac_extensions)) {
 				// Filter out all references to external extension schemas (not supported yet)
-				names = names.concat(data.stac_extensions.filter(e => !e.includes('://')));
+				for(let ext of data.stac_extensions) {
+					if (ext.includes('://')) {
+						console.log("Skipping schema " + ext + ": External schemas not supported yet");
+					}
+					else {
+						names.push(ext);
+					}
+				}
 			}
 
 			let fileValid = true;
 			for(let name of names) {
 				try {
-					let validate = await loadSchema(name);
+					let validate = await loadSchema(dev ? 'dev' : version, name, schemaFolder);
 					var valid = validate(data);
 					if (!valid) {
 						console.log('---- ' + name + ": invalid");
@@ -66,7 +93,7 @@ async function run() {
 						console.info('---- ' + name + ": valid");
 					}
 				} catch (error) {
-					console.error(error);
+					console.exception(error);
 				}
 			}
 			fileValid ? stats.valid++ : stats.invalid++;
@@ -78,7 +105,7 @@ async function run() {
 		process.exit(stats.invalid);
 	}
 	catch(error) {
-		console.error(error);
+		console.exception(error);
 		process.exit(1);
 	}
 }
@@ -94,34 +121,51 @@ async function readExamples(folder) {
 	return files;
 }
 
-async function loadSchema(name) {
-	if (typeof COMPILED[name] !== 'undefined') {
-		return COMPILED[name];
+async function loadSchema(version, name, schemaLocation) {
+	if (typeof COMPILED[version] === 'undefined') {
+		COMPILED[version] = {};
+	}
+	if (typeof COMPILED[version][name] !== 'undefined') {
+		return COMPILED[version][name];
 	}
 	else {
-		let file;
+		if (!schemaLocation) {
+			schemaLocation = "https://schemas.stacspec.org/" + version;
+		}
+		let schema;
 		switch(name) {
 			case 'core':
-				file = path.join(__dirname, './core.json');
+				schema = {
+					"$schema": "http://json-schema.org/draft-07/schema#",
+					"$id":"core-" + version + ".json#",
+					"oneOf": [
+						{
+							"$ref": schemaLocation + "/item-spec/json-schema/item.json"
+						},
+						{
+							"anyOf": [
+								{
+									"$ref": schemaLocation + "/catalog-spec/json-schema/catalog.json"
+								},
+								{
+									"$ref": schemaLocation + "/collection-spec/json-schema/collection.json"
+								}
+							]
+						}
+					]
+				};
 				break;
 			default:
-				file = path.join(__dirname, './stac-spec/extensions/' + name + '/json-schema/schema.json');
+				schema = schemaLocation + "/extensions/" + name + "/json-schema/schema.json";
 		}
-		if (!await fs.exists(file)) {
-			throw "No schema file for " + name;
-		}
-		let fullSchema = await $RefParser.dereference(file, {
+		let fullSchema = await $RefParser.dereference(schema, {
 			dereference: {
 			  circular: "ignore"
 			}
 		});
-		// Make $id unique, otherwise AjV will complain
-		if (!path.isAbsolute(fullSchema.$id)) {
-			fullSchema.$id = file + '#';
-		}
 		// Cache compiled schemas by name
-		COMPILED[name] = ajv.compile(fullSchema);
-		return COMPILED[name];
+		COMPILED[version][name] = ajv.compile(fullSchema);
+		return COMPILED[version][name];
 	}
 }
 
