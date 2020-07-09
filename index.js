@@ -77,7 +77,7 @@ async function run() {
 			let fileValid = true;
 			for(let name of names) {
 				try {
-					let validate = await loadSchema(dev ? 'dev' : version, name, schemaFolder);
+					let validate = await loadSchema(dev ? 'dev' : "v" + version, name, schemaFolder);
 					var valid = validate(data);
 					if (!valid) {
 						console.log('---- ' + name + ": invalid");
@@ -93,7 +93,7 @@ async function run() {
 						console.info('---- ' + name + ": valid");
 					}
 				} catch (error) {
-					console.exception(error);
+					console.error(error);
 				}
 			}
 			fileValid ? stats.valid++ : stats.invalid++;
@@ -105,7 +105,7 @@ async function run() {
 		process.exit(stats.invalid);
 	}
 	catch(error) {
-		console.exception(error);
+		console.error(error);
 		process.exit(1);
 	}
 }
