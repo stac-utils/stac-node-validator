@@ -6,8 +6,8 @@ Simple proof-of-concept to validate STAC Items, Catalogs, Collections and core e
 
 | STAC Node Validator Version | Supported STAC Versions |
 | --------------------------- | ----------------------- |
-| 0.2.1                       | 1.0.0-beta.1            |
 | 0.3.0                       | >= 1.0.0-beta.2         |
+| 0.2.1                       | 1.0.0-beta.1            |
 
 ## Setup
 
