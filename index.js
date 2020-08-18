@@ -55,40 +55,34 @@ async function run() {
 				continue;
 			}
 			
-			// Get all schema names to validate against
-			let names = ['core'];
+			// Get all schema to validate against
+			let schemas = ['core'];
 			if (Array.isArray(data.stac_extensions)) {
-				// Filter out all references to external extension schemas (not supported yet)
-				for(let ext of data.stac_extensions) {
-					if (ext.includes('://')) {
-						console.log("Skipping schema " + ext + ": External schemas not supported yet");
-					}
-					else {
-						names.push(ext);
-					}
-				}
+				schemas = schemas.concat(data.stac_extensions);
 			}
 
 			let fileValid = true;
-			for(let name of names) {
+			for(let schema of schemas) {
 				try {
-					let validate = await loadSchema("v" + version, name, schemaFolder);
-					var valid = validate(data);
+					let loadArgs = schema.includes('://') ? [schema] : [schemaFolder, version, schema];
+					let validate = await loadSchema(...loadArgs);
+					let valid = validate(data);
 					if (!valid) {
-						console.log('---- ' + name + ": invalid");
+						console.log('---- ' + schema + ": invalid");
 						console.warn(validate.errors);
 						console.log("\n");
 						fileValid = false;
-						if (name === 'core') {
+						if (schema === 'core') {
 							console.info("--- Validation error in core, skipping extension validation");
 							break;
 						}
 					}
 					else {
-						console.info('---- ' + name + ": valid");
+						console.info('---- ' + schema + ": valid");
 					}
 				} catch (error) {
-					console.error(error);
+					fileValid = false;
+					console.error('---- ' + schema + ": " + error.message);
 				}
 			}
 			fileValid ? stats.valid++ : stats.invalid++;
@@ -116,51 +110,60 @@ async function readExamples(folder) {
 	return files;
 }
 
-async function loadSchema(version, name, schemaLocation) {
-	if (typeof COMPILED[version] === 'undefined') {
-		COMPILED[version] = {};
+async function loadSchema(baseUrl = null, version = null, shortcut = null) {
+	version = (typeof version === 'string') ? "v" + version : "unversioned";
+
+	if (typeof baseUrl !== 'string') {
+		baseUrl = "https://schemas.stacspec.org/" + version;
 	}
-	if (typeof COMPILED[version][name] !== 'undefined') {
-		return COMPILED[version][name];
+
+	let url;
+	if (shortcut === 'core') {
+		url = baseUrl + "/core.json";
+	}
+	else if (typeof shortcut === 'string') {
+		url = baseUrl + "/extensions/" + shortcut + "/json-schema/schema.json";
 	}
 	else {
-		if (!schemaLocation) {
-			schemaLocation = "https://schemas.stacspec.org/" + version;
-		}
+		url = baseUrl;
+	}
+
+	if (typeof COMPILED[url] !== 'undefined') {
+		return COMPILED[url];
+	}
+	else {
 		let schema;
-		switch(name) {
-			case 'core':
-				schema = {
-					"$schema": "http://json-schema.org/draft-07/schema#",
-					"$id":"core-" + version + ".json#",
-					"oneOf": [
-						{
-							"$ref": schemaLocation + "/item-spec/json-schema/item.json"
-						},
-						{
-							"anyOf": [
-								{
-									"$ref": schemaLocation + "/catalog-spec/json-schema/catalog.json"
-								},
-								{
-									"$ref": schemaLocation + "/collection-spec/json-schema/collection.json"
-								}
-							]
-						}
-					]
-				};
-				break;
-			default:
-				schema = schemaLocation + "/extensions/" + name + "/json-schema/schema.json";
+		if (shortcut === 'core') {
+			schema = {
+				"$schema": "http://json-schema.org/draft-07/schema#",
+				"$id": shortcut + version + ".json#",
+				"oneOf": [
+					{
+						"$ref": baseUrl + "/item-spec/json-schema/item.json"
+					},
+					{
+						"anyOf": [
+							{
+								"$ref": baseUrl + "/catalog-spec/json-schema/catalog.json"
+							},
+							{
+								"$ref": baseUrl + "/collection-spec/json-schema/collection.json"
+							}
+						]
+					}
+				]
+			};
+		}
+		else {
+			schema = url;
 		}
 		let fullSchema = await $RefParser.dereference(schema, {
 			dereference: {
 			  circular: "ignore"
 			}
 		});
-		// Cache compiled schemas by name
-		COMPILED[version][name] = ajv.compile(fullSchema);
-		return COMPILED[version][name];
+		COMPILED[url] = ajv.compile(fullSchema);
+		return COMPILED[url];
 	}
 }
 
