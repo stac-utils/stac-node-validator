@@ -30,7 +30,7 @@ Add one of the following options to any of the commands above:
 
 ### Development
 
-1. `git clone --recurse-submodules https://github.com/m-mohr/stac-node-validator` to clone the repo and pull the submodules
+1. `git clone https://github.com/m-mohr/stac-node-validator` to clone the repo
 2. `cd stac-node-validator` to switch into the new folder created by git
-3. `npm install install` to install dependencies
-4. Run the commands as above, but replace `stac-node-validator` with `npm test --`, for example `npm test -- /path/to/your/file.json`
+3. `npm install` to install dependencies
+4. Run the commands as above, but replace `stac-node-validator` with `node bin/cli.js`, for example `node bin/cli.js /path/to/your/file.json`
