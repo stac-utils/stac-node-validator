@@ -27,11 +27,6 @@ async function run() {
 			}
 		}
 
-		let dev = Boolean(typeof args.dev !== 'undefined');
-		if (dev) {
-			console.info("Validating against the dev branch!");
-		}
-
 		let schemaFolder = null;
 		if (typeof args.schemas === 'string') {
 			let stat = await fs.lstat(args.schemas);
@@ -55,7 +50,7 @@ async function run() {
 			let version = data.stac_version;
 			console.log("-- " + file + " (" + version + ")");
 
-			if (!dev && compareVersions(version, '1.0.0-beta.2', '>=')) {
+			if (compareVersions(version, '1.0.0-beta.2', '>=')) {
 				console.error("Can only validate STAC version >= 1.0.0-beta.2\n");
 				continue;
 			}
@@ -77,7 +72,7 @@ async function run() {
 			let fileValid = true;
 			for(let name of names) {
 				try {
-					let validate = await loadSchema(dev ? 'dev' : "v" + version, name, schemaFolder);
+					let validate = await loadSchema("v" + version, name, schemaFolder);
 					var valid = validate(data);
 					if (!valid) {
 						console.log('---- ' + name + ": invalid");

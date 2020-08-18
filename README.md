@@ -4,9 +4,11 @@ Simple proof-of-concept to validate STAC Items, Catalogs, Collections and core e
 
 ## Versions
 
+**Current version: 0.3.0**
+
 | STAC Node Validator Version | Supported STAC Versions |
 | --------------------------- | ----------------------- |
-| 0.3.0                       | >= 1.0.0-beta.2         |
+| >= 0.3.0                    | >= 1.0.0-beta.2         |
 | 0.2.1                       | 1.0.0-beta.1            |
 
 ## Setup
@@ -24,8 +26,6 @@ Simple proof-of-concept to validate STAC Items, Catalogs, Collections and core e
 
 Add one of the following options to any of the commands above:
 
-- Validate against the schemas in the STAC dev branch: ` --dev`
-    Note that `stac_version` in STAC files must contain the version number of the last released STAC version.
 - Validate against schemas in a local STAC folder: ` --schemas /path/to/stac/folder`
 
 ### Development
