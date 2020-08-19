@@ -38,7 +38,7 @@ Here I'd like to give an overview of what the validators are capable of and what
 
 |                                | Python Validator | PySTAC  | STAC Node Validator |
 | :----------------------------- | ---------------- | ------- | ------------------- |
-| Can follow links               | Yes              | Yes     | No                  |
+| Can follow links               | Yes              | [Planned](https://github.com/stac-utils/pystac/pull/162) | No                  |
 | Parallelisation                | Yes              | No      | No                  |
 | Validate against local schemas | Yes              | Planned | Yes                 |
 | Other notable features         | ?                | ?       | ?                   |
