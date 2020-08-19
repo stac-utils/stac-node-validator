@@ -29,6 +29,10 @@ Instead of paths to local files, you can also use HTTP(S) URLs. Other protocols 
 Further options to add to the commands above:
 
 - To validate against schemas in a local STAC folder (e.g. `dev` branch): `--schemas /path/to/stac/folder`
+- To not verify SSL/TLS certificates: `--ignoreCerts`
+
+**Note on API support:** Validating lists of STAC items/collections (i.e. `GET /collections` and `GET /collections/:id/items`) is partially supported.
+It only checks the contained items/collections, but not the other parts of the response (e.g. `links`).
 
 ### Development
 

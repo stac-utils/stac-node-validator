@@ -28,6 +28,10 @@ async function run() {
 			}
 		}
 
+		if (typeof args.ignoreCerts !== 'undefined') {
+			process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;
+		}
+
 		let schemaFolder = null;
 		if (typeof args.schemas === 'string') {
 			let stat = await fs.lstat(args.schemas);
@@ -46,14 +50,14 @@ async function run() {
 		}
 		for(let file of files) {
 			// Read STAC file
-			let data;
+			let json;
 			try {
 				if (isUrl(file)) {
 					// For simplicity, we just load the URLs with $RefParser, so we don't need another dependency.
-					data = await $RefParser.dereference(file);
+					json = await $RefParser.parse(file);
 				}
 				else {
-					data = await fs.readJson(file);
+					json = await fs.readJson(file);
 				}
 			}
 			catch(error) {
@@ -61,46 +65,74 @@ async function run() {
 				continue;
 			}
 		
-			let version = data.stac_version;
-			console.log("-- " + file + " (" + version + ")");
-
-			if (compareVersions(version, '1.0.0-beta.2', '<')) {
-				console.error("Can only validate STAC version >= 1.0.0-beta.2\n");
-				continue;
+			let isApiList = false;
+			let entries;
+			if (Array.isArray(json.collections)) {
+				entries = json.collections;
+				isApiList = true;
+				console.log(file + " is a /collections endpoint. Validating all " + entries.length + " collections, but ignoring the other parts of the response.\n");
 			}
-			
-			// Get all schema to validate against
-			let schemas = ['core'];
-			if (Array.isArray(data.stac_extensions)) {
-				schemas = schemas.concat(data.stac_extensions);
+			else if (Array.isArray(json.features)) {
+				entries = json.features;
+				isApiList = true;
+				console.log(file + " is a /collections/:id/items endpoint. Validating all " + entries.length + " items, but ignoring the other parts of the response.\n");
+			}
+			else {
+				entries = [json];
 			}
 
 			let fileValid = true;
-			for(let schema of schemas) {
-				try {
-					let loadArgs = isUrl(schema) ? [schema] : [schemaFolder, version, schema];
-					let validate = await loadSchema(...loadArgs);
-					let valid = validate(data);
-					if (!valid) {
-						console.log('---- ' + schema + ": invalid");
-						console.warn(validate.errors);
-						console.log("\n");
-						fileValid = false;
-						if (schema === 'core') {
-							console.info("--- Validation error in core, skipping extension validation");
-							break;
-						}
-					}
-					else {
-						console.info('---- ' + schema + ": valid");
-					}
-				} catch (error) {
-					fileValid = false;
-					console.error('---- ' + schema + ": " + error.message);
+			for(let data of entries) {
+
+				let id = file;
+				if (isApiList) {
+					id += " -> " + data.id;
 				}
+				if (typeof data.stac_version !== 'string') {
+					console.error("-- " + id + ": Skipping; No STAC version found\n");
+					fileValid = false;
+					continue;
+				}
+				else if (compareVersions(version, '1.0.0-beta.2', '<')) {
+					console.error("-- " + id + ": Skipping; Can only validate STAC version >= 1.0.0-beta.2\n");
+					continue;
+				}
+				else {
+					console.log("-- " + id + "  (" + version + ")");
+				}
+				
+				// Get all schema to validate against
+				let schemas = ['core'];
+				if (Array.isArray(data.stac_extensions)) {
+					schemas = schemas.concat(data.stac_extensions);
+				}
+
+				for(let schema of schemas) {
+					try {
+						let loadArgs = isUrl(schema) ? [schema] : [schemaFolder, version, schema];
+						let validate = await loadSchema(...loadArgs);
+						let valid = validate(data);
+						if (!valid) {
+							console.log('---- ' + schema + ": invalid");
+							console.warn(validate.errors);
+							console.log("\n");
+							fileValid = false;
+							if (schema === 'core') {
+								console.info("--- Validation error in core, skipping extension validation");
+								break;
+							}
+						}
+						else {
+							console.info('---- ' + schema + ": valid");
+						}
+					} catch (error) {
+						fileValid = false;
+						console.error('---- ' + schema + ": " + error.message);
+					}
+				}
+				console.log("\n");
 			}
 			fileValid ? stats.valid++ : stats.invalid++;
-			console.log("\n");
 		}
 		console.info("Files: " + stats.files);
 		console.info("Valid: " + stats.valid);
