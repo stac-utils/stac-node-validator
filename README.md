@@ -8,7 +8,8 @@ Simple proof-of-concept to validate STAC Items, Catalogs, Collections and core e
 
 | STAC Node Validator Version | Supported STAC Versions |
 | --------------------------- | ----------------------- |
-| >= 0.3.0                    | >= 1.0.0-beta.2         |
+| >= 0.4.0                    | >= 1.0.0-beta.2         |
+| 0.3.0                       | 1.0.0-beta.2            |
 | 0.2.1                       | 1.0.0-beta.1            |
 
 ## Setup
@@ -20,13 +21,14 @@ Simple proof-of-concept to validate STAC Items, Catalogs, Collections and core e
 
 - Validate a single file: `stac-node-validator /path/to/your/file.json`
 - Validate multiple files: `stac-node-validator /path/to/your/catalog.json /path/to/your/item.json`
+
+Instead of paths to local files, you can also use HTTP(S) URLs. Other protocols such as S3 are not supported yet.
+
 - Validate a single folder (considers all `json` files in `examples` folders): `stac-node-validator ./stac-spec`
 
-### Validate against other versions
+Further options to add to the commands above:
 
-Add one of the following options to any of the commands above:
-
-- Validate against schemas in a local STAC folder: ` --schemas /path/to/stac/folder`
+- To validate against schemas in a local STAC folder (e.g. `dev` branch): `--schemas /path/to/stac/folder`
 
 ### Development
 

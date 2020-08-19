@@ -18,9 +18,10 @@ async function run() {
 
 		let files = args._;
 		if (files.length === 0) {
-			throw new Error('No file specified, validating all examples in STAC spec repository');
+			throw new Error('No path or URL specified.');
 		}
-		else if (files.length === 1) {
+		else if (files.length === 1 && !isUrl(files[0])) {
+			// Special handling for reading directories
 			let stat = await fs.lstat(files[0]);
 			if (stat.isDirectory()) {
 				files = await readExamples(files[0]);
@@ -45,12 +46,25 @@ async function run() {
 		}
 		for(let file of files) {
 			// Read STAC file
-			let data = await fs.readJson(file);
+			let data;
+			try {
+				if (isUrl(file)) {
+					// For simplicity, we just load the URLs with $RefParser, so we don't need another dependency.
+					data = await $RefParser.dereference(file);
+				}
+				else {
+					data = await fs.readJson(file);
+				}
+			}
+			catch(error) {
+				console.error("-- " + error.message);
+				continue;
+			}
 		
 			let version = data.stac_version;
 			console.log("-- " + file + " (" + version + ")");
 
-			if (compareVersions(version, '1.0.0-beta.2', '>=')) {
+			if (compareVersions(version, '1.0.0-beta.2', '<')) {
 				console.error("Can only validate STAC version >= 1.0.0-beta.2\n");
 				continue;
 			}
@@ -64,7 +78,7 @@ async function run() {
 			let fileValid = true;
 			for(let schema of schemas) {
 				try {
-					let loadArgs = schema.includes('://') ? [schema] : [schemaFolder, version, schema];
+					let loadArgs = isUrl(schema) ? [schema] : [schemaFolder, version, schema];
 					let validate = await loadSchema(...loadArgs);
 					let valid = validate(data);
 					if (!valid) {
@@ -97,6 +111,19 @@ async function run() {
 		console.error(error);
 		process.exit(1);
 	}
+}
+
+const SUPPORTED_PROTOCOLS = ['http', 'https'];
+
+function isUrl(uri) {
+	let part = uri.match(/^(\w+):\/\//i);
+	if(part) {
+		if (!SUPPORTED_PROTOCOLS.includes(part[1].toLowerCase())) {
+			throw new Error('Given protocol "' + part[1] + '" is not supported.');
+		}
+		return true;
+	}
+	return false;
 }
 
 async function readExamples(folder) {
