@@ -3,7 +3,7 @@
 There are - as far as I know - three maintained validators available for STAC:
 
 1. The original [Python validator](https://github.com/sparkgeo/stac-validator)
-3. The validation functionality shipped with [PySTAC](https://github.com/azavea/pystac)
+3. The validation functionality shipped with [PySTAC](https://github.com/stac-utils/pystac)
 4. [This Node/JavaScript validator](https://github.com/m-mohr/stac-node-validator)
 
 Additionally I found some tools that seem to be unmaintained: [1](https://github.com/brianbancroft/stac-validator-cli) [2](https://github.com/JamesOConnor/stac-validator)
@@ -14,31 +14,31 @@ Here I'd like to give an overview of what the validators are capable of and what
 
 |                            | Python Validator                           | PySTAC              | STAC Node Validator |
 | :------------------------- | ------------------------------------------ | ------------------- | ------------------- |
-| Validator Version          | ?                                          | 0.5.1               | 0.4.0               |
+| Validator Version          | 0.1.3                                      | 0.5.1               | 0.4.0               |
 | Language                   | Python 3.6                                 | Python 3            | NodeJS              |
 | CLI                        | Yes                                        | No                  | Yes                 |
 | Programmatic               | No                                         | Yes                 | Planned             |
 | Online                     | Yes, [staclint.com](https://staclint.com/) | No                  | Planned             |
 | Protocols supported (Read) | HTTP(S), Filesystem                        | HTTP(S), Filesystem | HTTP(S), Filesystem |
-| Output                     | JSON                                       | ?                   | CLI only            |
+| Gives                      | HTML / CLI Output                          | Python Dict         | CLI output          |
 
 ## Specifications supported
 
-|                                          | Python Validator    | PySTAC              | STAC Node Validator                     |
-| ---------------------------------------- | ------------------- | ------------------- | --------------------------------------- |
-| STAC Versions supported                  | >= 0.8.0            | >= 0.4.0            | >= 1.0.0-beta.1                         |
-| Protocols supported                      | HTTP(S), Filesystem | HTTP(S), Filesystem | HTTP(S), Filesystem                     |
-| Validates Items / Catalogs / Collections | Yes                 | Yes                 | Yes                                     |
-| Validates Core Extensions                | No                  | Yes                 | Yes, automatically                      |
-| Validates External Extensions            | No                  | Yes                 | Yes                                     |
-| Validates STAC API responses             | ?                   | No                  | Yes, except for links in list endpoints |
-| Validates STAC API extensions            | No                  | No                  | No                                      |
+|                                          | Python Validator    | PySTAC              | STAC Node Validator                         |
+| ---------------------------------------- | ------------------- | ------------------- | ------------------------------------------- |
+| STAC Versions supported                  | >= 0.8.0            | >= 0.4.0            | >= 1.0.0-beta.1                             |
+| Protocols supported                      | HTTP(S), Filesystem | HTTP(S), Filesystem | HTTP(S), Filesystem                         |
+| Validates Items / Catalogs / Collections | Yes                 | Yes                 | Yes                                         |
+| Validates Core Extensions                | No                  | Yes                 | Yes                                         |
+| Validates External / Custom Extensions   | No                  | No                  | Yes                                         |
+| Validates STAC API responses             | Unknown             | No                  | Pertially (only items/collections in lists) |
+| Validates STAC API extensions            | No                  | No                  | No                                          |
 
 ## Other Features
 
-|                                | Python Validator | PySTAC  | STAC Node Validator |
-| :----------------------------- | ---------------- | ------- | ------------------- |
-| Can follow links               | Yes              | [Planned](https://github.com/stac-utils/pystac/pull/162) | No                  |
-| Parallelisation                | Yes              | No      | No                  |
-| Validate against local schemas | Yes              | Planned | Yes                 |
-| Other notable features         | ?                | ?       | ?                   |
+|                                | Python Validator                 | PySTAC                                                   | STAC Node Validator |
+| :----------------------------- | -------------------------------- | -------------------------------------------------------- | ------------------- |
+| Can follow links               | Yes                              | [Planned](https://github.com/stac-utils/pystac/pull/162) | No                  |
+| Parallelisation                | Yes                              | No                                                       | No                  |
+| Validate against local schemas | Yes                              | Planned                                                  | Yes                 |
+| Other comments                 | Planned to use PySTAC internally | General Python library to work with STAC catalogs        | -                   |
