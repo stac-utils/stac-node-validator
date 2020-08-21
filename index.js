@@ -93,12 +93,12 @@ async function run() {
 					fileValid = false;
 					continue;
 				}
-				else if (compareVersions(version, '1.0.0-beta.2', '<')) {
+				else if (compareVersions(data.stac_version, '1.0.0-beta.2', '<')) {
 					console.error("-- " + id + ": Skipping; Can only validate STAC version >= 1.0.0-beta.2\n");
 					continue;
 				}
 				else {
-					console.log("-- " + id + "  (" + version + ")");
+					console.log("-- " + id + "  (" + data.stac_version + ")");
 				}
 				
 				// Get all schema to validate against
@@ -109,7 +109,7 @@ async function run() {
 
 				for(let schema of schemas) {
 					try {
-						let loadArgs = isUrl(schema) ? [schema] : [schemaFolder, version, schema];
+						let loadArgs = isUrl(schema) ? [schema] : [schemaFolder, data.stac_version, schema];
 						let validate = await loadSchema(...loadArgs);
 						let valid = validate(data);
 						if (!valid) {
