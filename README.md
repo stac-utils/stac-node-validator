@@ -2,6 +2,8 @@
 
 Simple proof-of-concept to validate STAC Items, Catalogs, Collections and core extensions with node.
 
+See the [STAC Validator Comparison](COMPARISON.md) for the features supported by this validator and the others out there.
+
 ## Versions
 
 **Current version: 0.4.1**
@@ -12,10 +14,15 @@ Simple proof-of-concept to validate STAC Items, Catalogs, Collections and core e
 | 0.3.0                       | 1.0.0-beta.2            |
 | 0.2.1                       | 1.0.0-beta.1            |
 
+## Quick Start
+
+1. Install [node and npm](https://nodejs.org) - should run with any recent version
+2. `npx stac-node-validator /path/to/your/file-or-folder` to temporarily install the library and validate the provided file for folder. See the chapters below for advanced usage options.
+
 ## Setup
 
 1. Install [node and npm](https://nodejs.org) - should run with any recent version
-2. `npm install -g stac-node-validator` to install the library
+2. `npm install -g stac-node-validator` to install the library permanently
 
 ## Usage
 
