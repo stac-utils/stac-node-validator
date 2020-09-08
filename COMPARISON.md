@@ -14,7 +14,7 @@ Here I'd like to give an overview of what the validators are capable of and what
 
 |                            | Python Validator                           | PySTAC              | STAC Node Validator |
 | :------------------------- | ------------------------------------------ | ------------------- | ------------------- |
-| Validator Version          | 1.0.1                                      |0.5.1                |0.4.0               |
+| Validator Version          | 1.0.1                                      | 0.5.1                | 0.4.0               |
 | Language                   | Python 3.6                                 | Python 3            | NodeJS              |
 | CLI                        | Yes                                        | No                  | Yes                 |
 | Programmatic               | Planned                                    | Yes                 | Planned             |
@@ -26,7 +26,7 @@ Here I'd like to give an overview of what the validators are capable of and what
 
 |                                          | Python Validator    | PySTAC              | STAC Node Validator                         |
 | ---------------------------------------- | ------------------- | ------------------- | ------------------------------------------- |
-| STAC Versions supported                  | >= 0.70            | >= 0.4.0            | >= 1.0.0-beta.1                             |
+| STAC Versions supported                  | >= 0.7.0            | >= 0.4.0            | >= 1.0.0-beta.1                             |
 | Protocols supported                      | HTTP(S), Filesystem | HTTP(S), Filesystem | HTTP(S), Filesystem                         |
 | Validates Items / Catalogs / Collections | Yes                 | Yes                 | Yes                                         |
 | Validates Core Extensions                | Yes                 | Yes                 | Yes                                         |
