@@ -14,10 +14,10 @@ Here I'd like to give an overview of what the validators are capable of and what
 
 |                            | Python Validator                           | PySTAC              | STAC Node Validator |
 | :------------------------- | ------------------------------------------ | ------------------- | ------------------- |
-| Validator Version          | 0.1.3                                      | 0.5.1               | 0.4.0               |
+| Validator Version          | 1.0.1                                      |0.5.1                |0.4.0               |
 | Language                   | Python 3.6                                 | Python 3            | NodeJS              |
 | CLI                        | Yes                                        | No                  | Yes                 |
-| Programmatic               | No                                         | Yes                 | Planned             |
+| Programmatic               | Planned                                    | Yes                 | Planned             |
 | Online                     | Yes, [staclint.com](https://staclint.com/) | No                  | Planned             |
 | Protocols supported (Read) | HTTP(S), Filesystem                        | HTTP(S), Filesystem | HTTP(S), Filesystem |
 | Gives                      | HTML / CLI Output                          | Python Dict         | CLI output          |
@@ -26,12 +26,12 @@ Here I'd like to give an overview of what the validators are capable of and what
 
 |                                          | Python Validator    | PySTAC              | STAC Node Validator                         |
 | ---------------------------------------- | ------------------- | ------------------- | ------------------------------------------- |
-| STAC Versions supported                  | >= 0.8.0            | >= 0.4.0            | >= 1.0.0-beta.1                             |
+| STAC Versions supported                  | >= 0.70            | >= 0.4.0            | >= 1.0.0-beta.1                             |
 | Protocols supported                      | HTTP(S), Filesystem | HTTP(S), Filesystem | HTTP(S), Filesystem                         |
 | Validates Items / Catalogs / Collections | Yes                 | Yes                 | Yes                                         |
-| Validates Core Extensions                | No                  | Yes                 | Yes                                         |
+| Validates Core Extensions                | Yes                 | Yes                 | Yes                                         |
 | Validates External / Custom Extensions   | No                  | No                  | Yes                                         |
-| Validates STAC API responses             | Unknown             | No                  | Pertially (only items/collections in lists) |
+| Validates STAC API responses             | No                  | No                  | Pertially (only items/collections in lists) |
 | Validates STAC API extensions            | No                  | No                  | No                                          |
 
 ## Other Features
@@ -41,4 +41,4 @@ Here I'd like to give an overview of what the validators are capable of and what
 | Can follow links               | Yes                              | [Planned](https://github.com/stac-utils/pystac/pull/162) | No                  |
 | Parallelisation                | Yes                              | No                                                       | No                  |
 | Validate against local schemas | Yes                              | Planned                                                  | Yes                 |
-| Other comments                 | Planned to use PySTAC internally | General Python library to work with STAC catalogs        | -                   |
+| Other comments                 | Uses pystac validation           | General Python library to work with STAC catalogs        | -                   |
