@@ -14,7 +14,7 @@ Here I'd like to give an overview of what the validators are capable of and what
 
 |                            | Python Validator                           | PySTAC              | STAC Node Validator |
 | :------------------------- | ------------------------------------------ | ------------------- | ------------------- |
-| Validator Version          | 1.0.1                                      | 0.5.1                | 0.4.0               |
+| Validator Version          | 1.0.1                                      | 0.5.2                | 0.4.0               |
 | Language                   | Python 3.6                                 | Python 3            | NodeJS              |
 | CLI                        | Yes                                        | No                  | Yes                 |
 | Programmatic               | Planned                                    | Yes                 | Planned             |
@@ -36,9 +36,9 @@ Here I'd like to give an overview of what the validators are capable of and what
 
 ## Other Features
 
-|                                | Python Validator                 | PySTAC                                                   | STAC Node Validator |
-| :----------------------------- | -------------------------------- | -------------------------------------------------------- | ------------------- |
-| Can follow links               | Yes                              | [Planned](https://github.com/stac-utils/pystac/pull/162) | No                  |
-| Parallelisation                | Yes                              | No                                                       | No                  |
-| Validate against local schemas | Yes                              | Planned                                                  | Yes                 |
-| Other comments                 | Uses pystac validation           | General Python library to work with STAC catalogs        | -                   |
+|                                | Python Validator       | PySTAC                                            | STAC Node Validator |
+| :----------------------------- | ---------------------- | ------------------------------------------------- | ------------------- |
+| Can follow links               | Yes                    | Yes                                               | No                  |
+| Parallelisation                | Yes                    | No                                                | No                  |
+| Validate against local schemas | Yes                    | Planned                                           | Yes                 |
+| Other comments                 | Uses pystac validation | General Python library to work with STAC catalogs | -                   |
