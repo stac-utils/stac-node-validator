@@ -2,11 +2,11 @@
 
 Simple proof-of-concept to validate STAC Items, Catalogs, Collections and core extensions with node.
 
-See the [STAC Validator Comparison](COMPARISON.md) for the features supported by this validator and the others out there.
+See the [STAC Validator Comparison](COMPARISON.md) for the features supported by this validator and the others out there.
 
 ## Versions
 
-**Current version: 0.4.1**
+**Current version: 0.4.2*
 
 | STAC Node Validator Version | Supported STAC Versions |
 | --------------------------- | ----------------------- |

@@ -100,9 +100,35 @@ async function run() {
 				else {
 					console.log("-- " + id + "  (" + data.stac_version + ")");
 				}
+
+				let type;
+				if (typeof data.type !== 'undefined') {
+					if (data.type === 'Feature') {
+						type = 'item';
+					}
+					else if (data.type === 'FeatureCollection') {
+						// type = 'itemcollection';
+						console.warn("-- " + id + ": Skipping; STAC ItemCollections not supported yet\n");
+						continue;
+					}
+					else {
+						console.error("-- " + id + ": `type` is invalid; must be `Feature`\n");
+						fileValid = false;
+						continue;
+					}
+				}
+				else {
+					if (typeof data.extent !== 'undefined' || data.license !== 'undefined') {
+						type = 'collection';
+
+					}
+					else {
+						type = 'catalog';
+					}
+				}
 				
 				// Get all schema to validate against
-				let schemas = ['core'];
+				let schemas = [type];
 				if (Array.isArray(data.stac_extensions)) {
 					schemas = schemas.concat(data.stac_extensions);
 				}
@@ -177,8 +203,8 @@ async function loadSchema(baseUrl = null, version = null, shortcut = null) {
 	}
 
 	let url;
-	if (shortcut === 'core') {
-		url = baseUrl + "/core.json";
+	if (shortcut === 'item' || shortcut === 'catalog' || shortcut === 'collection') {
+		url = baseUrl + "/" + shortcut + "-spec/json-schema/" + shortcut + ".json";
 	}
 	else if (typeof shortcut === 'string') {
 		url = baseUrl + "/extensions/" + shortcut + "/json-schema/schema.json";
@@ -191,32 +217,7 @@ async function loadSchema(baseUrl = null, version = null, shortcut = null) {
 		return COMPILED[url];
 	}
 	else {
-		let schema;
-		if (shortcut === 'core') {
-			schema = {
-				"$schema": "http://json-schema.org/draft-07/schema#",
-				"$id": shortcut + version + ".json#",
-				"oneOf": [
-					{
-						"$ref": baseUrl + "/item-spec/json-schema/item.json"
-					},
-					{
-						"anyOf": [
-							{
-								"$ref": baseUrl + "/catalog-spec/json-schema/catalog.json"
-							},
-							{
-								"$ref": baseUrl + "/collection-spec/json-schema/collection.json"
-							}
-						]
-					}
-				]
-			};
-		}
-		else {
-			schema = url;
-		}
-		let fullSchema = await $RefParser.dereference(schema, {
+		let fullSchema = await $RefParser.dereference(url, {
 			dereference: {
 			  circular: "ignore"
 			}
