@@ -31,7 +31,7 @@ Here I'd like to give an overview of what the validators are capable of and what
 | Validates Items / Catalogs / Collections            | Yes                 | Yes                 | Yes                                         |
 | Validates Core Extensions                           | Yes                 | Yes                 | Yes                                         |
 | Validates External / Custom Extensions              | No                  | No                  | Yes                                         |
-| Validates STAC API responses                        | No                  | No                  | Pertially (only items/collections in lists) |
+| Validates STAC API responses                        | No                  | No                  | Partially (only items/collections in lists) |
 | Validates STAC API extensions                       | No                  | No                  | No                                          |
 | Validates additional properties in STAC Item Assets | No                  | No                  | No                                          |
 
