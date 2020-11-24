@@ -6,10 +6,32 @@ const path = require('path')
 const minimist = require('minimist');
 const compareVersions = require('compare-versions');
 
+let DEBUG = false;
 let COMPILED = {};
+let SHORTCUTS = [
+	'card4l-sar-nrb',
+	'checksum',
+	'collection-assets',
+	'datacube',
+	'eo',
+	'item-assets',
+	'label',
+	'pointcloud',
+	'projection',
+	'sar',
+	'sat',
+	'scientific',
+	'single-file-stac',
+	'tiled-assets',
+	'timestamps',
+	'version',
+	'view'
+];
 let ajv = new Ajv({
 	allErrors: true,
-	missingRefs: "ignore"
+	missingRefs: "ignore",
+	addUsedSchema: false,
+	logger: DEBUG ? console : false
 });
 
 async function run() {
@@ -143,7 +165,7 @@ async function run() {
 							console.warn(validate.errors);
 							console.log("\n");
 							fileValid = false;
-							if (schema === 'core') {
+							if (schema === 'core' && !DEBUG) {
 								console.info("--- Validation error in core, skipping extension validation");
 								break;
 							}
@@ -154,6 +176,9 @@ async function run() {
 					} catch (error) {
 						fileValid = false;
 						console.error('---- ' + schema + ": " + error.message);
+						if (DEBUG) {
+							console.trace(error);
+						}
 					}
 				}
 				console.log("\n");
@@ -201,13 +226,22 @@ async function loadSchema(baseUrl = null, version = null, shortcut = null) {
 	if (typeof baseUrl !== 'string') {
 		baseUrl = "https://schemas.stacspec.org/" + version;
 	}
+	else {
+		baseUrl = baseUrl.replace(/\\/g, '/').replace(/\/$/, "");
+	}
 
 	let url;
+	let isExtension = false;
 	if (shortcut === 'item' || shortcut === 'catalog' || shortcut === 'collection') {
 		url = baseUrl + "/" + shortcut + "-spec/json-schema/" + shortcut + ".json";
 	}
 	else if (typeof shortcut === 'string') {
+		if (shortcut === 'proj') {
+			// Capture a very common mistake and give a better explanation (see #4)
+			throw new Error("'stac_extensions' must contain 'projection instead of 'proj'.");
+		}
 		url = baseUrl + "/extensions/" + shortcut + "/json-schema/schema.json";
+		isExtension = true;
 	}
 	else {
 		url = baseUrl;
@@ -217,13 +251,32 @@ async function loadSchema(baseUrl = null, version = null, shortcut = null) {
 		return COMPILED[url];
 	}
 	else {
-		let fullSchema = await $RefParser.dereference(url, {
-			dereference: {
-			  circular: "ignore"
+		try {
+			let parser = new $RefParser();
+			let fullSchema = await parser.dereference(url, {
+				dereference: {
+					circular: 'ignore'
+				}
+			});
+			COMPILED[url] = ajv.compile(fullSchema);
+			if (parser.$refs.circular) {
+				console.log(`Schema ${url} is circular, which is not supported by the library. Some properties may not get validated.`);
 			}
-		});
-		COMPILED[url] = ajv.compile(fullSchema);
-		return COMPILED[url];
+			return COMPILED[url];
+		} catch (error) {
+			// Convert error to string, both for Error objects and strings
+			let msg = "" + error;
+			// Give better error message for (likely) invalid shortcuts
+			if (isExtension && !SHORTCUTS.includes(shortcut) && (msg.includes("Error downloading") || msg.includes("Error opening file"))) {
+				if (DEBUG) {
+					console.trace(error);
+				}
+				throw new Error(`Schema at '${url}' not found. Please ensure all entries in 'stac_extensions' are valid. ${hint}`);
+			}
+			else {
+				throw error;
+			}
+		}
 	}
 }
 
