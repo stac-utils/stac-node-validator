@@ -17,6 +17,7 @@ let SHORTCUTS = [
 	'item-assets',
 	'label',
 	'pointcloud',
+	'processing',
 	'projection',
 	'sar',
 	'sat',
@@ -92,12 +93,12 @@ async function run() {
 			if (Array.isArray(json.collections)) {
 				entries = json.collections;
 				isApiList = true;
-				console.log(file + " is a /collections endpoint. Validating all " + entries.length + " collections, but ignoring the other parts of the response.\n");
+				console.log(`${file} is a /collections endpoint. Validating all ${entries.length} collections, but ignoring the other parts of the response.\n`);
 			}
 			else if (Array.isArray(json.features)) {
 				entries = json.features;
 				isApiList = true;
-				console.log(file + " is a /collections/:id/items endpoint. Validating all " + entries.length + " items, but ignoring the other parts of the response.\n");
+				console.log(`${file} is a /collections/:id/items endpoint. Validating all ${entries.length} items, but ignoring the other parts of the response.\n`);
 			}
 			else {
 				entries = [json];
@@ -111,16 +112,16 @@ async function run() {
 					id += " -> " + data.id;
 				}
 				if (typeof data.stac_version !== 'string') {
-					console.error("-- " + id + ": Skipping; No STAC version found\n");
+					console.error(`-- ${id}: Skipping; No STAC version found\n`);
 					fileValid = false;
 					continue;
 				}
 				else if (compareVersions(data.stac_version, '1.0.0-beta.2', '<')) {
-					console.error("-- " + id + ": Skipping; Can only validate STAC version >= 1.0.0-beta.2\n");
+					console.error(`-- ${id}: Skipping; Can only validate STAC version >= 1.0.0-beta.2\n`);
 					continue;
 				}
 				else {
-					console.log("-- " + id + "  (" + data.stac_version + ")");
+					console.log(`-- ${id} (${data.stac_version})`);
 				}
 
 				let type;
@@ -130,17 +131,17 @@ async function run() {
 					}
 					else if (data.type === 'FeatureCollection') {
 						// type = 'itemcollection';
-						console.warn("-- " + id + ": Skipping; STAC ItemCollections not supported yet\n");
+						console.warn(`-- ${id}: Skipping; STAC ItemCollections not supported yet\n`);
 						continue;
 					}
 					else {
-						console.error("-- " + id + ": `type` is invalid; must be `Feature`\n");
+						console.error(`-- ${id}: 'type' is invalid; must be 'Feature'\n`);
 						fileValid = false;
 						continue;
 					}
 				}
 				else {
-					if (typeof data.extent !== 'undefined' || data.license !== 'undefined') {
+					if (typeof data.extent !== 'undefined' || typeof data.license !== 'undefined') {
 						type = 'collection';
 
 					}
@@ -161,7 +162,7 @@ async function run() {
 						let validate = await loadSchema(...loadArgs);
 						let valid = validate(data);
 						if (!valid) {
-							console.log('---- ' + schema + ": invalid");
+							console.log(`---- ${schema}: invalid`);
 							console.warn(validate.errors);
 							console.log("\n");
 							fileValid = false;
@@ -171,11 +172,11 @@ async function run() {
 							}
 						}
 						else {
-							console.info('---- ' + schema + ": valid");
+							console.log(`---- ${schema}: valid`);
 						}
 					} catch (error) {
 						fileValid = false;
-						console.error('---- ' + schema + ": " + error.message);
+						console.error(`---- ${schema}: ${error.message}`);
 						if (DEBUG) {
 							console.trace(error);
 						}
@@ -202,7 +203,7 @@ function isUrl(uri) {
 	let part = uri.match(/^(\w+):\/\//i);
 	if(part) {
 		if (!SUPPORTED_PROTOCOLS.includes(part[1].toLowerCase())) {
-			throw new Error('Given protocol "' + part[1] + '" is not supported.');
+			throw new Error(`Given protocol "${part[1]}" is not supported.`);
 		}
 		return true;
 	}
@@ -213,7 +214,7 @@ async function readExamples(folder) {
 	var files = [];
 	for await (let file of klaw(folder)) {
 		let relPath = path.relative(folder, file.path);
-		if (relPath.includes(path.sep + 'examples' + path.sep) && path.extname(relPath) === '.json') {
+		if (relPath.match(/(^|\/|\\)examples(\/|\\)[^\/\\]+\.json$/i)) {
 			files.push(file.path);
 		}
 	}
@@ -224,7 +225,7 @@ async function loadSchema(baseUrl = null, version = null, shortcut = null) {
 	version = (typeof version === 'string') ? "v" + version : "unversioned";
 
 	if (typeof baseUrl !== 'string') {
-		baseUrl = "https://schemas.stacspec.org/" + version;
+		baseUrl = `https://schemas.stacspec.org/${version}`;
 	}
 	else {
 		baseUrl = baseUrl.replace(/\\/g, '/').replace(/\/$/, "");
@@ -233,14 +234,14 @@ async function loadSchema(baseUrl = null, version = null, shortcut = null) {
 	let url;
 	let isExtension = false;
 	if (shortcut === 'item' || shortcut === 'catalog' || shortcut === 'collection') {
-		url = baseUrl + "/" + shortcut + "-spec/json-schema/" + shortcut + ".json";
+		url = `${baseUrl}/${shortcut}-spec/json-schema/${shortcut}.json`;
 	}
 	else if (typeof shortcut === 'string') {
 		if (shortcut === 'proj') {
 			// Capture a very common mistake and give a better explanation (see #4)
 			throw new Error("'stac_extensions' must contain 'projection instead of 'proj'.");
 		}
-		url = baseUrl + "/extensions/" + shortcut + "/json-schema/schema.json";
+		url = `${baseUrl}/extensions/${shortcut}/json-schema/schema.json`;
 		isExtension = true;
 	}
 	else {
@@ -271,7 +272,7 @@ async function loadSchema(baseUrl = null, version = null, shortcut = null) {
 				if (DEBUG) {
 					console.trace(error);
 				}
-				throw new Error(`Schema at '${url}' not found. Please ensure all entries in 'stac_extensions' are valid. ${hint}`);
+				throw new Error(`Schema at '${url}' not found. Please ensure all entries in 'stac_extensions' are valid.`);
 			}
 			else {
 				throw error;
