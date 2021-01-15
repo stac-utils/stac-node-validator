@@ -1,6 +1,6 @@
 {
   "name": "stac-node-validator",
-  "version": "0.4.5",
+  "version": "0.4.6",
   "description": "STAC Validator for NodeJS",
   "author": "Matthias Mohr",
   "license": "Apache-2.0",
@@ -29,6 +29,7 @@
     "ajv": "^6.12.2",
     "compare-versions": "^3.6.0",
     "fs-extra": "^9.0.0",
+    "jest-diff": "^26.6.2",
     "klaw": "^3.0.0",
     "minimist": "^1.2.5"
   }

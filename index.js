@@ -5,6 +5,7 @@ const klaw = require('klaw');
 const path = require('path')
 const minimist = require('minimist');
 const compareVersions = require('compare-versions');
+const {diffStringsUnified} = require('jest-diff');
 
 let DEBUG = false;
 let COMPILED = {};
@@ -91,15 +92,17 @@ async function run() {
 					}
 				}
 				else {
-					let fileContent = await fs.readFile(file);
+					let fileContent = await fs.readFile(file, "utf8");
 					json = JSON.parse(fileContent);
 					if (doLint || doFormat) {
-						// 2 spaces, *nix newlines, newline at end of file
-						const expectedContent = JSON.stringify(json, null, 2).replace(/(\r\n|\r)/g, "\n") + "\n";
-						if (fileContent !== expectedContent) {
+						const expectedContent = JSON.stringify(json, null, 2);
+						if (!matchFile(fileContent, expectedContent)) {
 							stats.malformed++;
 							if (doLint) {
 								console.warn("--- Lint: File is malformed -> use `--format` to fix the issue");
+								if (typeof args.verbose !== 'undefined') {
+									console.log(diffStringsUnified(fileContent, expectedContent));
+								}
 							}
 							if (doFormat) {
 								console.warn("--- Format: File was malformed -> fixed the issue");
@@ -221,7 +224,8 @@ async function run() {
 		if (doLint || doFormat) {
 			console.info("Malformed: " + stats.malformed);
 		}
-		process.exit(stats.invalid);
+		let errored = (stats.invalid > 0 || (doLint && !doFormat && stats.malformed > 0)) ? 1 : 0;
+		process.exit(errored);
 	}
 	catch(error) {
 		console.error(error);
@@ -230,6 +234,15 @@ async function run() {
 }
 
 const SUPPORTED_PROTOCOLS = ['http', 'https'];
+
+function matchFile(given, expected) {
+	return normalizeNewline(given) === normalizeNewline(expected);
+}
+
+function normalizeNewline(str) {
+	// 2 spaces, *nix newlines, newline at end of file
+	return str.trimRight().replace(/(\r\n|\r)/g, "\n") + "\n";
+}
 
 function isUrl(uri) {
 	let part = uri.match(/^(\w+):\/\//i);
