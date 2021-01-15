@@ -6,7 +6,7 @@ See the [STAC Validator Comparison](COMPARISON.md) for the features supported by
 
 ## Versions
 
-**Current version: 0.4.4**
+**Current version: 0.4.5**
 
 | STAC Node Validator Version | Supported STAC Versions |
 | --------------------------- | ----------------------- |
@@ -37,6 +37,8 @@ Further options to add to the commands above:
 
 - To validate against schemas in a local STAC folder (e.g. `dev` branch): `--schemas /path/to/stac/folder`
 - To not verify SSL/TLS certificates: `--ignoreCerts`
+- To lint local JSON files:  `--lint`
+- To format / pretty-print local JSON files: `--format` (Attention: this will override the source files without warning!)
 
 **Note on API support:** Validating lists of STAC items/collections (i.e. `GET /collections` and `GET /collections/:id/items`) is partially supported.
 It only checks the contained items/collections, but not the other parts of the response (e.g. `links`).

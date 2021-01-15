@@ -42,4 +42,6 @@ Here I'd like to give an overview of what the validators are capable of and what
 | Can follow links               | Yes                    | Yes                                               | No                  |
 | Parallelisation                | Yes                    | No                                                | No                  |
 | Validate against local schemas | Yes                    | Planned                                           | Yes                 |
+| Lint JSON files                | No                     | No                                                | Yes                 |
+| Format/Pretty-print JSON files | No                     | Yes                                               | Yes                 |
 | Other comments                 | Uses pystac validation | General Python library to work with STAC catalogs | -                   |
