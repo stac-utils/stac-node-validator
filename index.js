@@ -65,22 +65,51 @@ async function run() {
 				throw new Error('Schema folder is not a valid directory');
 			}
 		}
+
+		const doLint = (typeof args.lint !== 'undefined');
+		const doFormat = (typeof args.format !== 'undefined');
 	
 		let stats = {
 			files: files.length,
 			invalid: 0,
-			valid: 0
+			valid: 0,
+			malformed: 0
 		}
 		for(let file of files) {
 			// Read STAC file
 			let json;
+			console.log(`-- ${file}`);
 			try {
 				if (isUrl(file)) {
 					// For simplicity, we just load the URLs with $RefParser, so we don't need another dependency.
 					json = await $RefParser.parse(file);
+					if (doLint) {
+						console.warn("--- Linting not supported for remote files");
+					}
+					if (doFormat) {
+						console.warn("--- Formatting not supported for remote files");
+					}
 				}
 				else {
-					json = await fs.readJson(file);
+					let fileContent = await fs.readFile(file);
+					json = JSON.parse(fileContent);
+					if (doLint || doFormat) {
+						// 2 spaces, *nix newlines, newline at end of file
+						const expectedContent = JSON.stringify(json, null, 2).replace(/(\r\n|\r)/g, "\n") + "\n";
+						if (fileContent !== expectedContent) {
+							stats.malformed++;
+							if (doLint) {
+								console.warn("--- Lint: File is malformed -> use `--format` to fix the issue");
+							}
+							if (doFormat) {
+								console.warn("--- Format: File was malformed -> fixed the issue");
+								await fs.writeFile(file, expectedContent);
+							}
+						}
+						else if (doLint) {
+							console.warn("--- Lint: File is well-formed");
+						}
+					}
 				}
 			}
 			catch(error) {
@@ -93,12 +122,12 @@ async function run() {
 			if (Array.isArray(json.collections)) {
 				entries = json.collections;
 				isApiList = true;
-				console.log(`${file} is a /collections endpoint. Validating all ${entries.length} collections, but ignoring the other parts of the response.\n`);
+				console.log(`--- The file is a /collections endpoint. Validating all ${entries.length} collections, but ignoring the other parts of the response.\n`);
 			}
 			else if (Array.isArray(json.features)) {
 				entries = json.features;
 				isApiList = true;
-				console.log(`${file} is a /collections/:id/items endpoint. Validating all ${entries.length} items, but ignoring the other parts of the response.\n`);
+				console.log(`--- The file is a /collections/:id/items endpoint. Validating all ${entries.length} items, but ignoring the other parts of the response.\n`);
 			}
 			else {
 				entries = [json];
@@ -107,21 +136,21 @@ async function run() {
 			let fileValid = true;
 			for(let data of entries) {
 
-				let id = file;
+				let id = '';
 				if (isApiList) {
-					id += " -> " + data.id;
+					id = `${data.id}: `;
 				}
 				if (typeof data.stac_version !== 'string') {
-					console.error(`-- ${id}: Skipping; No STAC version found\n`);
+					console.error(`--- ${id}Skipping; No STAC version found\n`);
 					fileValid = false;
 					continue;
 				}
 				else if (compareVersions(data.stac_version, '1.0.0-beta.2', '<')) {
-					console.error(`-- ${id}: Skipping; Can only validate STAC version >= 1.0.0-beta.2\n`);
+					console.error(`--- ${id}Skipping; Can only validate STAC version >= 1.0.0-beta.2\n`);
 					continue;
 				}
 				else {
-					console.log(`-- ${id} (${data.stac_version})`);
+					console.log(`--- ${id}STAC Version: ${data.stac_version}`);
 				}
 
 				let type;
@@ -131,11 +160,11 @@ async function run() {
 					}
 					else if (data.type === 'FeatureCollection') {
 						// type = 'itemcollection';
-						console.warn(`-- ${id}: Skipping; STAC ItemCollections not supported yet\n`);
+						console.warn(`--- ${id}Skipping; STAC ItemCollections not supported yet\n`);
 						continue;
 					}
 					else {
-						console.error(`-- ${id}: 'type' is invalid; must be 'Feature'\n`);
+						console.error(`--- ${id}'type' is invalid; must be 'Feature'\n`);
 						fileValid = false;
 						continue;
 					}
@@ -189,6 +218,9 @@ async function run() {
 		console.info("Files: " + stats.files);
 		console.info("Valid: " + stats.valid);
 		console.info("Invalid: " + stats.invalid);
+		if (doLint || doFormat) {
+			console.info("Malformed: " + stats.malformed);
+		}
 		process.exit(stats.invalid);
 	}
 	catch(error) {

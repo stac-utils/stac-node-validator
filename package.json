@@ -1,6 +1,6 @@
 {
   "name": "stac-node-validator",
-  "version": "0.4.4",
+  "version": "0.4.5",
   "description": "STAC Validator for NodeJS",
   "author": "Matthias Mohr",
   "license": "Apache-2.0",
