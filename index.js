@@ -1,6 +1,7 @@
 const $RefParser = require("@apidevtools/json-schema-ref-parser");
 const Ajv = require('ajv');
 const formats = require('ajv-formats-draft2019/formats');
+const iriFormats = require('./iri.js');
 const fs = require('fs-extra');
 const klaw = require('klaw');
 const path = require('path')
@@ -34,7 +35,7 @@ let SHORTCUTS = [
 	'view'
 ];
 let ajv = new Ajv({
-	formats,
+	formats: Object.assign(formats, iriFormats),
 	allErrors: true,
 	missingRefs: "ignore",
 	addUsedSchema: false,
