@@ -1,20 +1,24 @@
 const $RefParser = require("@apidevtools/json-schema-ref-parser");
 const Ajv = require('ajv');
+const formats = require('ajv-formats-draft2019/formats');
 const fs = require('fs-extra');
 const klaw = require('klaw');
 const path = require('path')
 const minimist = require('minimist');
 const compareVersions = require('compare-versions');
 const {diffStringsUnified} = require('jest-diff');
+const package = require('./package.json');
 
 let DEBUG = false;
 let COMPILED = {};
 let SHORTCUTS = [
-	'card4l-sar-nrb',
-	'checksum',
+	'card4l-eo',
+	'card4l-sar',
+	'checksum', // legacy
 	'collection-assets',
 	'datacube',
 	'eo',
+	'file',
 	'item-assets',
 	'label',
 	'pointcloud',
@@ -30,6 +34,7 @@ let SHORTCUTS = [
 	'view'
 ];
 let ajv = new Ajv({
+	formats,
 	allErrors: true,
 	missingRefs: "ignore",
 	addUsedSchema: false,
@@ -37,6 +42,7 @@ let ajv = new Ajv({
 });
 
 async function run() {
+	console.log(`STAC Node Validator v${package.version}\n`);
 	try {
 		let args = minimist(process.argv.slice(2));
 

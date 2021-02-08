@@ -1,6 +1,6 @@
 {
   "name": "stac-node-validator",
-  "version": "0.4.6",
+  "version": "0.4.7",
   "description": "STAC Validator for NodeJS",
   "author": "Matthias Mohr",
   "license": "Apache-2.0",
@@ -27,6 +27,7 @@
   "dependencies": {
     "@apidevtools/json-schema-ref-parser": "^9.0.1",
     "ajv": "^6.12.2",
+    "ajv-formats-draft2019": "^1.4.3",
     "compare-versions": "^3.6.0",
     "fs-extra": "^9.0.0",
     "jest-diff": "^26.6.2",
