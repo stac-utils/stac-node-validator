@@ -8,13 +8,13 @@
     "stac",
     "validator"
   ],
-  "homepage": "https://github.com/m-mohr/stac-node-validator",
+  "homepage": "https://github.com/stac-utils/stac-node-validator",
   "bugs": {
-    "url": "https://github.com/m-mohr/stac-node-validator/issues"
+    "url": "https://github.com/stac-utils/stac-node-validator/issues"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/m-mohr/stac-node-validator.git"
+    "url": "https://github.com/stac-utils/stac-node-validator.git"
   },
   "main": "index.js",
   "bin": {

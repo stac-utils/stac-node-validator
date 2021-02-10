@@ -45,7 +45,7 @@ It only checks the contained items/collections, but not the other parts of the r
 
 ### Development
 
-1. `git clone https://github.com/m-mohr/stac-node-validator` to clone the repo
+1. `git clone https://github.com/stac-utils/stac-node-validator` to clone the repo
 2. `cd stac-node-validator` to switch into the new folder created by git
 3. `npm install` to install dependencies
 4. Run the commands as above, but replace `stac-node-validator` with `node bin/cli.js`, for example `node bin/cli.js /path/to/your/file.json`
