@@ -41,11 +41,14 @@ let ajv = new Ajv({
 	addUsedSchema: false,
 	logger: DEBUG ? console : false
 });
+let verbose = false;
 
 async function run() {
 	console.log(`STAC Node Validator v${package.version}\n`);
 	try {
 		let args = minimist(process.argv.slice(2));
+
+		verbose = (typeof args.verbose !== 'undefined');
 
 		let files = args._;
 		if (files.length === 0) {
@@ -86,16 +89,16 @@ async function run() {
 		for(let file of files) {
 			// Read STAC file
 			let json;
-			console.log(`-- ${file}`);
+			console.log(`- ${file}`);
 			try {
 				if (isUrl(file)) {
 					// For simplicity, we just load the URLs with $RefParser, so we don't need another dependency.
 					json = await $RefParser.parse(file);
 					if (doLint) {
-						console.warn("--- Linting not supported for remote files");
+						console.warn("-- Linting not supported for remote files");
 					}
 					if (doFormat) {
-						console.warn("--- Formatting not supported for remote files");
+						console.warn("-- Formatting not supported for remote files");
 					}
 				}
 				else {
@@ -106,24 +109,26 @@ async function run() {
 						if (!matchFile(fileContent, expectedContent)) {
 							stats.malformed++;
 							if (doLint) {
-								console.warn("--- Lint: File is malformed -> use `--format` to fix the issue");
-								if (typeof args.verbose !== 'undefined') {
+								console.warn("-- Lint: File is malformed -> use `--format` to fix the issue");
+								if (verbose) {
 									console.log(diffStringsUnified(fileContent, expectedContent));
 								}
 							}
 							if (doFormat) {
-								console.warn("--- Format: File was malformed -> fixed the issue");
+								console.warn("-- Format: File was malformed -> fixed the issue");
 								await fs.writeFile(file, expectedContent);
 							}
 						}
-						else if (doLint) {
-							console.warn("--- Lint: File is well-formed");
+						else if (doLint && verbose) {
+							console.warn("-- Lint: File is well-formed");
 						}
 					}
 				}
 			}
 			catch(error) {
-				console.error("-- " + error.message);
+				stats.invalid++;
+				stats.malformed++;
+				console.error("-- " + error.message + "\n");
 				continue;
 			}
 		
@@ -132,12 +137,22 @@ async function run() {
 			if (Array.isArray(json.collections)) {
 				entries = json.collections;
 				isApiList = true;
-				console.log(`--- The file is a /collections endpoint. Validating all ${entries.length} collections, but ignoring the other parts of the response.\n`);
+				if (verbose) {
+					console.log(`-- The file is a /collections endpoint. Validating all ${entries.length} collections, but ignoring the other parts of the response.`);
+					if (entries.length > 1) {
+						console.log('');
+					}
+				}
 			}
 			else if (Array.isArray(json.features)) {
 				entries = json.features;
 				isApiList = true;
-				console.log(`--- The file is a /collections/:id/items endpoint. Validating all ${entries.length} items, but ignoring the other parts of the response.\n`);
+				if (verbose) {
+					console.log(`-- The file is a /collections/:id/items endpoint. Validating all ${entries.length} items, but ignoring the other parts of the response.`);
+					if (entries.length > 1) {
+						console.log('');
+					}
+				}
 			}
 			else {
 				entries = [json];
@@ -151,42 +166,38 @@ async function run() {
 					id = `${data.id}: `;
 				}
 				if (typeof data.stac_version !== 'string') {
-					console.error(`--- ${id}Skipping; No STAC version found\n`);
+					console.error(`-- ${id}Skipping; No STAC version found\n`);
 					fileValid = false;
 					continue;
 				}
 				else if (compareVersions(data.stac_version, '1.0.0-beta.2', '<')) {
-					console.error(`--- ${id}Skipping; Can only validate STAC version >= 1.0.0-beta.2\n`);
+					console.error(`-- ${id}Skipping; Can only validate STAC version >= 1.0.0-beta.2\n`);
 					continue;
 				}
-				else {
-					console.log(`--- ${id}STAC Version: ${data.stac_version}`);
+				else if (verbose) {
+					console.log(`-- ${id}STAC Version: ${data.stac_version}`);
 				}
 
 				let type;
-				if (typeof data.type !== 'undefined') {
-					if (data.type === 'Feature') {
-						type = 'item';
-					}
-					else if (data.type === 'FeatureCollection') {
-						// type = 'itemcollection';
-						console.warn(`--- ${id}Skipping; STAC ItemCollections not supported yet\n`);
-						continue;
-					}
-					else {
-						console.error(`--- ${id}'type' is invalid; must be 'Feature'\n`);
-						fileValid = false;
-						continue;
-					}
+				if (data.type === 'Feature') {
+					type = 'item';
+				}
+				else if (data.type === 'FeatureCollection') {
+					// type = 'itemcollection';
+					console.warn(`-- ${id}Skipping; STAC ItemCollections not supported yet\n`);
+					continue;
+				}
+				else if (typeof data.extent !== 'undefined' || typeof data.license !== 'undefined') {
+					type = 'collection';
+
+				}
+				else if (typeof data.description !== 'undefined') {
+					type = 'catalog';
 				}
 				else {
-					if (typeof data.extent !== 'undefined' || typeof data.license !== 'undefined') {
-						type = 'collection';
-
-					}
-					else {
-						type = 'catalog';
-					}
+					console.error(`-- ${id}Invalid; Can't detect which schema to use.\n`);
+					fileValid = false;
+					continue;
 				}
 				
 				// Get all schema to validate against
@@ -201,27 +212,31 @@ async function run() {
 						let validate = await loadSchema(...loadArgs);
 						let valid = validate(data);
 						if (!valid) {
-							console.log(`---- ${schema}: invalid`);
+							console.log(`--- ${schema}: invalid`);
 							console.warn(validate.errors);
 							console.log("\n");
 							fileValid = false;
 							if (schema === 'core' && !DEBUG) {
-								console.info("--- Validation error in core, skipping extension validation");
+								if (verbose) {
+									console.info("-- Validation error in core, skipping extension validation");
+								}
 								break;
 							}
 						}
-						else {
-							console.log(`---- ${schema}: valid`);
+						else if (verbose) {
+							console.log(`--- ${schema}: valid`);
 						}
 					} catch (error) {
 						fileValid = false;
-						console.error(`---- ${schema}: ${error.message}`);
+						console.error(`--- ${schema}: ${error.message}`);
 						if (DEBUG) {
 							console.trace(error);
 						}
 					}
 				}
-				console.log("\n");
+				if (!fileValid || verbose) {
+					console.log('');
+				}
 			}
 			fileValid ? stats.valid++ : stats.invalid++;
 		}
@@ -312,8 +327,8 @@ async function loadSchema(baseUrl = null, version = null, shortcut = null) {
 				}
 			});
 			COMPILED[url] = ajv.compile(fullSchema);
-			if (parser.$refs.circular) {
-				console.log(`Schema ${url} is circular, which is not supported by the library. Some properties may not get validated.`);
+			if (parser.$refs.circular && verbose) {
+				console.log(`--- Schema ${url} is circular, which is not supported by the library. Some properties may not get validated.`);
 			}
 			return COMPILED[url];
 		} catch (error) {
@@ -324,7 +339,7 @@ async function loadSchema(baseUrl = null, version = null, shortcut = null) {
 				if (DEBUG) {
 					console.trace(error);
 				}
-				throw new Error(`Schema at '${url}' not found. Please ensure all entries in 'stac_extensions' are valid.`);
+				throw new Error(`-- Schema at '${url}' not found. Please ensure all entries in 'stac_extensions' are valid.`);
 			}
 			else {
 				throw error;

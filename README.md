@@ -37,6 +37,7 @@ Further options to add to the commands above:
 
 - To validate against schemas in a local STAC folder (e.g. `dev` branch): `--schemas /path/to/stac/folder`
 - To not verify SSL/TLS certificates: `--ignoreCerts`
+- Add `--verbose` to get a more detailed output
 - To lint local JSON files: `--lint` (add `--verbose` to get a diff with the changes required)
 - To format / pretty-print local JSON files: `--format` (Attention: this will override the source files without warning!)
 
