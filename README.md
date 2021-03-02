@@ -6,11 +6,11 @@ See the [STAC Validator Comparison](COMPARISON.md) for the features supported by
 
 ## Versions
 
-**Current version: 0.4.8**
+**Current version: 1.0.0**
 
 | STAC Node Validator Version | Supported STAC Versions |
 | --------------------------- | ----------------------- |
-| >= 0.4.0                    | >= 1.0.0-beta.2         |
+| 0.4.x / 1.0.0               | >= 1.0.0-beta.2         |
 | 0.3.0                       | 1.0.0-beta.2            |
 | 0.2.1                       | 1.0.0-beta.1            |
 
@@ -36,6 +36,7 @@ Instead of paths to local files, you can also use HTTP(S) URLs. Other protocols 
 Further options to add to the commands above:
 
 - To validate against schemas in a local STAC folder (e.g. `dev` branch): `--schemas /path/to/stac/folder`
+- To validate against a specific local schema (e.g. an external extension): `--schemaMap https://stac-extensions.github.io/foobar/v1.0.0/schema.json=./json-schema.schema.json`
 - To not verify SSL/TLS certificates: `--ignoreCerts`
 - Add `--verbose` to get a more detailed output
 - To lint local JSON files: `--lint` (add `--verbose` to get a diff with the changes required)

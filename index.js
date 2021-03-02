@@ -6,7 +6,7 @@ const fs = require('fs-extra');
 const klaw = require('klaw');
 const path = require('path')
 const minimist = require('minimist');
-const compareVersions = require('compare-versions');
+const versions = require('compare-versions');
 const {diffStringsUnified} = require('jest-diff');
 const package = require('./package.json');
 
@@ -42,6 +42,7 @@ let ajv = new Ajv({
 	logger: DEBUG ? console : false
 });
 let verbose = false;
+let schemaMap = {};
 
 async function run() {
 	console.log(`STAC Node Validator v${package.version}\n`);
@@ -74,6 +75,20 @@ async function run() {
 			}
 			else {
 				throw new Error('Schema folder is not a valid directory');
+			}
+		}
+
+		if (typeof args.schemaMap === 'string') {
+			let map = args.schemaMap.split(';');
+			for(let row of map) {
+				let parts = row.split("=");
+				let stat = await fs.lstat(parts[1]);
+				if (stat.isFile()) {
+					schemaMap[parts[0]] =  parts[1];
+				}
+				else {
+					console.error(`Schema mapping for ${parts[0]} is not a valid file: ${parts[1]}`);
+				}
 			}
 		}
 
@@ -160,7 +175,6 @@ async function run() {
 
 			let fileValid = true;
 			for(let data of entries) {
-
 				let id = '';
 				if (isApiList) {
 					id = `${data.id}: `;
@@ -170,7 +184,7 @@ async function run() {
 					fileValid = false;
 					continue;
 				}
-				else if (compareVersions(data.stac_version, '1.0.0-beta.2', '<')) {
+				else if (versions.compare(data.stac_version, '1.0.0-beta.2', '<')) {
 					console.error(`-- ${id}Skipping; Can only validate STAC version >= 1.0.0-beta.2\n`);
 					continue;
 				}
@@ -187,11 +201,11 @@ async function run() {
 					console.warn(`-- ${id}Skipping; STAC ItemCollections not supported yet\n`);
 					continue;
 				}
-				else if (typeof data.extent !== 'undefined' || typeof data.license !== 'undefined') {
+				else if (data.type === "Collection" || typeof data.extent !== 'undefined' || typeof data.license !== 'undefined') {
 					type = 'collection';
 
 				}
-				else if (typeof data.description !== 'undefined') {
+				else if (data.type === "Catalog" || typeof data.description !== 'undefined') {
 					type = 'catalog';
 				}
 				else {
@@ -313,6 +327,10 @@ async function loadSchema(baseUrl = null, version = null, shortcut = null) {
 	}
 	else {
 		url = baseUrl;
+	}
+
+	if (schemaMap[url]) {
+		url = schemaMap[url];
 	}
 
 	if (typeof COMPILED[url] !== 'undefined') {
