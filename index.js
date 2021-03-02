@@ -293,9 +293,9 @@ function isUrl(uri) {
 
 async function readExamples(folder) {
 	var files = [];
-	for await (let file of klaw(folder)) {
+	for await (let file of klaw(folder, {depthLimit: -1})) {
 		let relPath = path.relative(folder, file.path);
-		if (relPath.match(/(^|\/|\\)examples(\/|\\)[^\/\\]+\.json$/i)) {
+		if (relPath.match(/(^|\/|\\)examples(\/|\\).+\.json$/i)) {
 			files.push(file.path);
 		}
 	}
