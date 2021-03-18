@@ -13,25 +13,22 @@ const package = require('./package.json');
 let DEBUG = false;
 let COMPILED = {};
 let SHORTCUTS = [
-	'card4l-eo',
-	'card4l-sar',
 	'checksum', // legacy
-	'collection-assets',
-	'datacube',
+	'collection-assets', // now in core
+	'datacube', // now in stac-extensions org
 	'eo',
-	'file',
-	'item-assets',
-	'label',
-	'pointcloud',
-	'processing',
+	'item-assets', // now in stac-extensions org
+	'label', // now in stac-extensions org
+	'pointcloud', // now in stac-extensions org
+	'processing', // now in stac-extensions org
 	'projection',
-	'sar',
-	'sat',
+	'sar', // now in stac-extensions org
+	'sat', // now in stac-extensions org
 	'scientific',
-	'single-file-stac',
-	'tiled-assets',
-	'timestamps',
-	'version',
+	'single-file-stac', // now in stac-extensions org
+	'tiled-assets', // now in stac-extensions org
+	'timestamps', // now in stac-extensions org
+	'version', // now in stac-extensions org
 	'view'
 ];
 let ajv = new Ajv({
@@ -78,17 +75,23 @@ async function run() {
 			}
 		}
 
-		if (typeof args.schemaMap === 'string') {
-			let map = args.schemaMap.split(';');
-			for(let row of map) {
-				let parts = row.split("=");
-				let stat = await fs.lstat(parts[1]);
-				if (stat.isFile()) {
-					schemaMap[parts[0]] =  parts[1];
-				}
-				else {
-					console.error(`Schema mapping for ${parts[0]} is not a valid file: ${parts[1]}`);
-				}
+		let schemaMapArgs = [];
+		if (Array.isArray(args.schemaMap)) {
+			// Recommended way
+			schemaMapArgs = args.schemaMap;
+		}
+		else if (typeof args.schemaMap === 'string') {
+			// Backward compliance
+			schemaMapArgs = args.schemaMap.split(';');
+		}
+		for(let arg of schemaMapArgs) {
+			let parts = arg.split("=");
+			let stat = await fs.lstat(parts[1]);
+			if (stat.isFile()) {
+				schemaMap[parts[0]] =  parts[1];
+			}
+			else {
+				console.error(`Schema mapping for ${parts[0]} is not a valid file: ${parts[1]}`);
 			}
 		}
 
