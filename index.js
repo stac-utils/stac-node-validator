@@ -1,5 +1,5 @@
-const $RefParser = require("@apidevtools/json-schema-ref-parser");
 const Ajv = require('ajv');
+const axios = require('axios');
 const formats = require('ajv-formats-draft2019/formats');
 const iriFormats = require('./iri.js');
 const fs = require('fs-extra');
@@ -11,35 +11,15 @@ const {diffStringsUnified} = require('jest-diff');
 const package = require('./package.json');
 
 let DEBUG = false;
-let COMPILED = {};
-let SHORTCUTS = [
-	'checksum', // legacy
-	'collection-assets', // now in core
-	'datacube', // now in stac-extensions org
-	'eo',
-	'item-assets', // now in stac-extensions org
-	'label', // now in stac-extensions org
-	'pointcloud', // now in stac-extensions org
-	'processing', // now in stac-extensions org
-	'projection',
-	'sar', // now in stac-extensions org
-	'sat', // now in stac-extensions org
-	'scientific',
-	'single-file-stac', // now in stac-extensions org
-	'tiled-assets', // now in stac-extensions org
-	'timestamps', // now in stac-extensions org
-	'version', // now in stac-extensions org
-	'view'
-];
 let ajv = new Ajv({
 	formats: Object.assign(formats, iriFormats),
 	allErrors: true,
-	missingRefs: "ignore",
-	addUsedSchema: false,
-	logger: DEBUG ? console : false
+	logger: DEBUG ? console : false,
+	loadSchema: loadJsonFromUri
 });
 let verbose = false;
 let schemaMap = {};
+let schemaFolder = null;
 
 async function run() {
 	console.log(`STAC Node Validator v${package.version}\n`);
@@ -64,14 +44,13 @@ async function run() {
 			process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;
 		}
 
-		let schemaFolder = null;
 		if (typeof args.schemas === 'string') {
 			let stat = await fs.lstat(args.schemas);
 			if (stat.isDirectory()) {
-				schemaFolder = args.schemas;
+				schemaFolder = normalizePath(args.schemas);
 			}
 			else {
-				throw new Error('Schema folder is not a valid directory');
+				throw new Error('Schema folder is not a valid STAC directory');
 			}
 		}
 
@@ -109,37 +88,35 @@ async function run() {
 			let json;
 			console.log(`- ${file}`);
 			try {
-				if (isUrl(file)) {
-					// For simplicity, we just load the URLs with $RefParser, so we don't need another dependency.
-					json = await $RefParser.parse(file);
-					if (doLint) {
-						console.warn("-- Linting not supported for remote files");
+				let fileIsUrl = isUrl(file);
+				if (!fileIsUrl && (doLint || doFormat)) {
+					let fileContent = await fs.readFile(file, "utf8");
+					json = JSON.parse(fileContent);
+					const expectedContent = JSON.stringify(json, null, 2);
+					if (!matchFile(fileContent, expectedContent)) {
+						stats.malformed++;
+						if (doLint) {
+							console.warn("-- Lint: File is malformed -> use `--format` to fix the issue");
+							if (verbose) {
+								console.log(diffStringsUnified(fileContent, expectedContent));
+							}
+						}
+						if (doFormat) {
+							console.warn("-- Format: File was malformed -> fixed the issue");
+							await fs.writeFile(file, expectedContent);
+						}
 					}
-					if (doFormat) {
-						console.warn("-- Formatting not supported for remote files");
+					else if (doLint && verbose) {
+						console.warn("-- Lint: File is well-formed");
 					}
 				}
 				else {
-					let fileContent = await fs.readFile(file, "utf8");
-					json = JSON.parse(fileContent);
-					if (doLint || doFormat) {
-						const expectedContent = JSON.stringify(json, null, 2);
-						if (!matchFile(fileContent, expectedContent)) {
-							stats.malformed++;
-							if (doLint) {
-								console.warn("-- Lint: File is malformed -> use `--format` to fix the issue");
-								if (verbose) {
-									console.log(diffStringsUnified(fileContent, expectedContent));
-								}
-							}
-							if (doFormat) {
-								console.warn("-- Format: File was malformed -> fixed the issue");
-								await fs.writeFile(file, expectedContent);
-							}
-						}
-						else if (doLint && verbose) {
-							console.warn("-- Lint: File is well-formed");
-						}
+					json = await loadJsonFromUri(file);
+					if (fileIsUrl && (doLint || doFormat)) {
+						let what = [];
+						doLint && what.push('Linting');
+						doLint && what.push('Formatting');
+						console.warn(`-- ${what.join(' and ')} not supported for remote files`);
 					}
 				}
 			}
@@ -187,53 +164,67 @@ async function run() {
 					fileValid = false;
 					continue;
 				}
-				else if (versions.compare(data.stac_version, '1.0.0-beta.2', '<')) {
-					console.error(`-- ${id}Skipping; Can only validate STAC version >= 1.0.0-beta.2\n`);
+				else if (versions.compare(data.stac_version, '1.0.0-rc.1', '<')) {
+					console.error(`-- ${id}Skipping; Can only validate STAC version >= 1.0.0-rc.1\n`);
 					continue;
 				}
 				else if (verbose) {
 					console.log(`-- ${id}STAC Version: ${data.stac_version}`);
 				}
 
-				let type;
-				if (data.type === 'Feature') {
-					type = 'item';
-				}
-				else if (data.type === 'FeatureCollection') {
-					// type = 'itemcollection';
-					console.warn(`-- ${id}Skipping; STAC ItemCollections not supported yet\n`);
-					continue;
-				}
-				else if (data.type === "Collection" || typeof data.extent !== 'undefined' || typeof data.license !== 'undefined') {
-					type = 'collection';
-
-				}
-				else if (data.type === "Catalog" || typeof data.description !== 'undefined') {
-					type = 'catalog';
-				}
-				else {
-					console.error(`-- ${id}Invalid; Can't detect which schema to use.\n`);
-					fileValid = false;
-					continue;
+				switch(data.type) {
+					case 'FeatureCollection':
+						console.warn(`-- ${id}Skipping; STAC ItemCollections not supported yet\n`);
+						continue;
+					case 'Catalog':
+					case 'Collection':
+					case 'Feature':
+						break;
+					default:
+						console.error(`-- ${id}Invalid; Can't detect type of the STAC object. Is the 'type' field missing or invalid?\n`);
+						fileValid = false;
+						continue;
 				}
 				
 				// Get all schema to validate against
-				let schemas = [type];
+				let schemas = [data.type];
 				if (Array.isArray(data.stac_extensions)) {
 					schemas = schemas.concat(data.stac_extensions);
+					// Convert shortcuts supported in 1.0.0 RC1 into schema URLs
+					if (versions.compare(data.stac_version, '1.0.0-rc.1', '=')) {
+						schemas = schemas.map(ext => ext.replace(/^(eo|projection|scientific|view)$/, 'https://schemas.stacspec.org/v1.0.0-rc.1/extensions/$1/json-schema/schema.json'));
+					}
 				}
 
 				for(let schema of schemas) {
 					try {
-						let loadArgs = isUrl(schema) ? [schema] : [schemaFolder, data.stac_version, schema];
-						let validate = await loadSchema(...loadArgs);
+						let schemaId;
+						let core = false;
+						switch(schema) {
+							case 'Feature':
+								schema = 'Item';
+							case 'Catalog':
+							case 'Collection':
+								let type = schema.toLowerCase();
+								schemaId = `https://schemas.stacspec.org/v${data.stac_version}/${type}-spec/json-schema/${type}.json`;
+								core = true;
+								break;
+							default: // extension
+								if (isUrl(schema)) {
+									schemaId = schema;
+								}
+								else {
+									throw new Error("'stac_extensions' must contain a valid schema URL, not a shortcut.");
+								}
+						}
+						let validate = await loadSchema(schemaId);
 						let valid = validate(data);
 						if (!valid) {
 							console.log(`--- ${schema}: invalid`);
 							console.warn(validate.errors);
 							console.log("\n");
 							fileValid = false;
-							if (schema === 'core' && !DEBUG) {
+							if (core && !DEBUG) {
 								if (verbose) {
 									console.info("-- Validation error in core, skipping extension validation");
 								}
@@ -278,18 +269,24 @@ function matchFile(given, expected) {
 	return normalizeNewline(given) === normalizeNewline(expected);
 }
 
+function normalizePath(path) {
+	return path.replace(/\\/g, '/').replace(/\/$/, "");
+}
+
 function normalizeNewline(str) {
 	// 2 spaces, *nix newlines, newline at end of file
 	return str.trimRight().replace(/(\r\n|\r)/g, "\n") + "\n";
 }
 
 function isUrl(uri) {
-	let part = uri.match(/^(\w+):\/\//i);
-	if(part) {
-		if (!SUPPORTED_PROTOCOLS.includes(part[1].toLowerCase())) {
-			throw new Error(`Given protocol "${part[1]}" is not supported.`);
+	if (typeof uri === 'string') {
+		let part = uri.match(/^(\w+):\/\//i);
+		if(part) {
+			if (!SUPPORTED_PROTOCOLS.includes(part[1].toLowerCase())) {
+				throw new Error(`Given protocol "${part[1]}" is not supported.`);
+			}
+			return true;
 		}
-		return true;
 	}
 	return false;
 }
@@ -305,68 +302,43 @@ async function readExamples(folder) {
 	return files;
 }
 
-async function loadSchema(baseUrl = null, version = null, shortcut = null) {
-	version = (typeof version === 'string') ? "v" + version : "unversioned";
-
-	if (typeof baseUrl !== 'string') {
-		baseUrl = `https://schemas.stacspec.org/${version}`;
+async function loadJsonFromUri(uri) {
+	if (schemaMap[uri]) {
+		uri = schemaMap[uri];
+	}
+	else if (schemaFolder) {
+		uri = uri.replace(/^https:\/\/schemas\.stacspec\.org\/v[^\/]+/, schemaFolder);
+	}
+	if (isUrl(uri)) {
+		let response = await axios.get(uri);
+		return response.data;
 	}
 	else {
-		baseUrl = baseUrl.replace(/\\/g, '/').replace(/\/$/, "");
+		return JSON.parse(await fs.readFile(uri, "utf8"));
+	}
+}
+
+async function loadSchema(schemaId) {
+	let schema = ajv.getSchema(schemaId);
+	if (schema) {
+		return schema;
 	}
 
-	let url;
-	let isExtension = false;
-	if (shortcut === 'item' || shortcut === 'catalog' || shortcut === 'collection') {
-		url = `${baseUrl}/${shortcut}-spec/json-schema/${shortcut}.json`;
-	}
-	else if (typeof shortcut === 'string') {
-		if (shortcut === 'proj') {
-			// Capture a very common mistake and give a better explanation (see #4)
-			throw new Error("'stac_extensions' must contain 'projection instead of 'proj'.");
+	try {
+		json = await loadJsonFromUri(schemaId);
+	} catch (error) {
+		if (DEBUG) {
+			console.trace(error);
 		}
-		url = `${baseUrl}/extensions/${shortcut}/json-schema/schema.json`;
-		isExtension = true;
-	}
-	else {
-		url = baseUrl;
+		throw new Error(`-- Schema at '${schemaId}' not found. Please ensure all entries in 'stac_extensions' are valid.`);
 	}
 
-	if (schemaMap[url]) {
-		url = schemaMap[url];
+	schema = ajv.getSchema(json.$id);
+	if (schema) {
+		return schema;
 	}
 
-	if (typeof COMPILED[url] !== 'undefined') {
-		return COMPILED[url];
-	}
-	else {
-		try {
-			let parser = new $RefParser();
-			let fullSchema = await parser.dereference(url, {
-				dereference: {
-					circular: 'ignore'
-				}
-			});
-			COMPILED[url] = ajv.compile(fullSchema);
-			if (parser.$refs.circular && verbose) {
-				console.log(`--- Schema ${url} is circular, which is not supported by the library. Some properties may not get validated.`);
-			}
-			return COMPILED[url];
-		} catch (error) {
-			// Convert error to string, both for Error objects and strings
-			let msg = "" + error;
-			// Give better error message for (likely) invalid shortcuts
-			if (isExtension && !SHORTCUTS.includes(shortcut) && (msg.includes("Error downloading") || msg.includes("Error opening file"))) {
-				if (DEBUG) {
-					console.trace(error);
-				}
-				throw new Error(`-- Schema at '${url}' not found. Please ensure all entries in 'stac_extensions' are valid.`);
-			}
-			else {
-				throw error;
-			}
-		}
-	}
+	return await ajv.compileAsync(json);
 }
 
 module.exports = async () => {
