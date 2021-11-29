@@ -27,8 +27,6 @@ it('Should return exit code 0 and no error when run against simple catalog', asy
 		files: ['tests/catalog.json']
 	});
 
-	console.debug(consoleLogSpy.mock.calls);
-
 	expect(consoleLogSpy.mock.calls[0][0]).toContain(initString);
 	expect(consoleLogSpy.mock.calls[1][0]).toContain('tests/catalog.json');
 	expect(consoleInfSpy.mock.calls[0][0]).toContain('Files: 1');
