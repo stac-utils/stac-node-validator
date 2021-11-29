@@ -52,3 +52,9 @@ It only checks the contained items/collections, but not the other parts of the r
 2. `cd stac-node-validator` to switch into the new folder created by git
 3. `npm install` to install dependencies
 4. Run the commands as above, but replace `stac-node-validator` with `node bin/cli.js`, for example `node bin/cli.js /path/to/your/file.json`
+
+### Test
+
+Simply run `npm test` in a working [development environment](#development).
+
+If you want to disable tests for your fork of the repository, simply delete `.github/workflows/test.yaml`.

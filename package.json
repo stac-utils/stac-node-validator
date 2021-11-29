@@ -34,5 +34,11 @@
     "jest-diff": "^26.6.2",
     "klaw": "^3.0.0",
     "minimist": "^1.2.5"
+  },
+  "devDependencies": {
+    "ospec": "^4.1.1"
+  },
+  "scripts": {
+    "test": "npx ospec"
   }
 }

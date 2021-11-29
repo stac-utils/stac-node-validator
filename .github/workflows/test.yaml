@@ -1,0 +1,31 @@
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+jobs:
+  test:
+    strategy:
+      matrix:
+        runner: [
+          'macos-10.15',
+          'macos-11',
+          'macos-latest',
+          'ubuntu-18.04',
+          'ubuntu-20.04',
+          'ubuntu-latest',
+          'windows-2019',
+          'windows-2022',
+          'windows-latest',
+        ]
+        node: [ '12', '14', '16', 'lts/*' ]
+    runs-on: ${{ matrix.runner }}
+    name: ${{ matrix.runner }} runner with Node.js ${{ matrix.node }}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2.4.1
+        with:
+          node-version: ${{ matrix.node }}
+      - run: npm install
+      - run: npm test
