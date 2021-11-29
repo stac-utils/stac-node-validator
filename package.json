@@ -36,9 +36,9 @@
     "minimist": "^1.2.5"
   },
   "devDependencies": {
-    "ospec": "^4.1.1"
+    "jest": "^27.4.0"
   },
   "scripts": {
-    "test": "npx ospec"
+    "test": "jest"
   }
 }

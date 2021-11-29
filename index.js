@@ -8,7 +8,7 @@ const path = require('path')
 const minimist = require('minimist');
 const versions = require('compare-versions');
 const {diffStringsUnified} = require('jest-diff');
-const package = require('./package.json');
+const { version } = require('./package.json');
 
 let DEBUG = false;
 let ajv = new Ajv({
@@ -21,14 +21,14 @@ let verbose = false;
 let schemaMap = {};
 let schemaFolder = null;
 
-async function run() {
-	console.log(`STAC Node Validator v${package.version}\n`);
+async function run(config) {
+	console.log(`STAC Node Validator v${version}\n`);
 	try {
-		let args = minimist(process.argv.slice(2));
+		let args = config || minimist(process.argv.slice(2));
 
 		verbose = (typeof args.verbose !== 'undefined');
 
-		let files = args._;
+		let files = args._ || args.files || [];
 		if (files.length === 0) {
 			throw new Error('No path or URL specified.');
 		}
@@ -67,7 +67,7 @@ async function run() {
 			let parts = arg.split("=");
 			let stat = await fs.lstat(parts[1]);
 			if (stat.isFile()) {
-				schemaMap[parts[0]] =  parts[1];
+				schemaMap[parts[0]] =	parts[1];
 			}
 			else {
 				console.error(`Schema mapping for ${parts[0]} is not a valid file: ${parts[1]}`);
@@ -341,6 +341,6 @@ async function loadSchema(schemaId) {
 	return await ajv.compileAsync(json);
 }
 
-module.exports = async () => {
-	await run();
+module.exports = async config => {
+	await run(config);
 };
