@@ -8,7 +8,7 @@ const path = require('path')
 const minimist = require('minimist');
 const versions = require('compare-versions');
 const {diffStringsUnified} = require('jest-diff');
-const package = require('./package.json');
+const packageJson = require('./package.json');
 
 let DEBUG = false;
 let ajv = new Ajv({
@@ -22,7 +22,7 @@ let schemaMap = {};
 let schemaFolder = null;
 
 async function run() {
-	console.log(`STAC Node Validator v${package.version}\n`);
+	console.log(`STAC Node Validator v${packageJson.version}\n`);
 	try {
 		let args = minimist(process.argv.slice(2));
 
@@ -76,7 +76,7 @@ async function run() {
 
 		const doLint = (typeof args.lint !== 'undefined');
 		const doFormat = (typeof args.format !== 'undefined');
-	
+
 		let stats = {
 			files: files.length,
 			invalid: 0,
@@ -126,7 +126,7 @@ async function run() {
 				console.error("-- " + error.message + "\n");
 				continue;
 			}
-		
+
 			let isApiList = false;
 			let entries;
 			if (Array.isArray(json.collections)) {
@@ -185,7 +185,7 @@ async function run() {
 						fileValid = false;
 						continue;
 				}
-				
+
 				// Get all schema to validate against
 				let schemas = [data.type];
 				if (Array.isArray(data.stac_extensions)) {
