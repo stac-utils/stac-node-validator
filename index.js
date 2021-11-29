@@ -21,14 +21,33 @@ let verbose = false;
 let schemaMap = {};
 let schemaFolder = null;
 
-async function run(config) {
+async function run(config = {}) {
 	console.log(`STAC Node Validator v${version}\n`);
 	try {
-		let args = config || minimist(process.argv.slice(2));
+		let args = minimist(process.argv.slice(2));
 
-		verbose = (typeof args.verbose !== 'undefined');
+		if (typeof args.config === 'string') {
+			let configFile;
+			try {
+				configFile = await fs.readFile(args.config, "utf8");
+			} catch (error) {
+				throw new Error('Config file does not exist.');
+			}
+			try {
+				config = JSON.parse(configFile);
+			} catch (error) {
+				throw new Error('Config file is invalid JSON.');
+			}
+		}
+		else if (Object.keys(config).length === 0) {
+			config = args;
+			config.files = args._;
+		}
+		// else: use config passed via parameter (e.g. from tests)
 
-		let files = args._ || args.files || [];
+		verbose = Boolean(config.verbose);
+
+		let files = Array.isArray(config.files) ? config.files : [];
 		if (files.length === 0) {
 			throw new Error('No path or URL specified.');
 		}
@@ -40,14 +59,14 @@ async function run(config) {
 			}
 		}
 
-		if (typeof args.ignoreCerts !== 'undefined') {
+		if (config.ignoreCerts) {
 			process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;
 		}
 
-		if (typeof args.schemas === 'string') {
-			let stat = await fs.lstat(args.schemas);
+		if (typeof config.schemas === 'string') {
+			let stat = await fs.lstat(config.schemas);
 			if (stat.isDirectory()) {
-				schemaFolder = normalizePath(args.schemas);
+				schemaFolder = normalizePath(config.schemas);
 			}
 			else {
 				throw new Error('Schema folder is not a valid STAC directory');
@@ -55,13 +74,13 @@ async function run(config) {
 		}
 
 		let schemaMapArgs = [];
-		if (Array.isArray(args.schemaMap)) {
+		if (Array.isArray(config.schemaMap)) {
 			// Recommended way
-			schemaMapArgs = args.schemaMap;
+			schemaMapArgs = config.schemaMap;
 		}
-		else if (typeof args.schemaMap === 'string') {
+		else if (typeof config.schemaMap === 'string') {
 			// Backward compliance
-			schemaMapArgs = args.schemaMap.split(';');
+			schemaMapArgs = config.schemaMap.split(';');
 		}
 		for(let arg of schemaMapArgs) {
 			let parts = arg.split("=");
@@ -74,8 +93,8 @@ async function run(config) {
 			}
 		}
 
-		const doLint = (typeof args.lint !== 'undefined');
-		const doFormat = (typeof args.format !== 'undefined');
+		const doLint = Boolean(config.lint);
+		const doFormat = Boolean(config.format);
 	
 		let stats = {
 			files: files.length,

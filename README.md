@@ -46,6 +46,28 @@ Further options to add to the commands above:
 **Note on API support:** Validating lists of STAC items/collections (i.e. `GET /collections` and `GET /collections/:id/items`) is partially supported.
 It only checks the contained items/collections, but not the other parts of the response (e.g. `links`).
 
+### Config file
+
+You can also pass a config file via the `--config` option. Simply pass a file path as value. No other parameters can be set via CLI then.
+
+The config file uses the same option names as above. To specify the files to be validated, add an aray with paths.
+
+Example:
+```json
+{
+  "files": [
+    "/path/to/your/catalog.json",
+    "/path/to/your/item.json"
+  ],
+  "schemas": "/path/to/stac/folder",
+  "schemaMap": "https://stac-extensions.github.io/foobar/v1.0.0/schema.json=./json-schema/schema.json",
+  "ignoreCerts": false,
+  "verbose": false,
+  "lint": false,
+  "format": false
+}
+```
+
 ### Development
 
 1. `git clone https://github.com/stac-utils/stac-node-validator` to clone the repo
