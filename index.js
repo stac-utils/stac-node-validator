@@ -85,14 +85,8 @@ async function run(config) {
 
 		let schemaMapArgs = [];
 		if (config.schemaMap && typeof config.schemaMap === 'object') {
-			if (Array.isArray(config.schemaMap)) {
-				// Recommended way via CLI
-				schemaMapArgs = config.schemaMap;
-			}
-			else {
-				// Recommended way via config file
-				schemaMapArgs = config.schemaMap;
-			}
+			// Recommended way
+			schemaMapArgs = config.schemaMap;
 		}
 		else if (typeof config.schemaMap === 'string') {
 			// Backward compliance
