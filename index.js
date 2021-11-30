@@ -98,7 +98,7 @@ async function run(config) {
 		for(let url in schemaMapArgs) {
 			let path = schemaMapArgs[url];
 			if (typeof url !== 'string') { // from CLI
-				[url, path] = url.split("=");
+				[url, path] = path.split("=");
 			}
 			let stat = await fs.lstat(path);
 			if (stat.isFile()) {
