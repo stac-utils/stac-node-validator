@@ -1,6 +1,6 @@
 const Ajv = require('ajv');
 const axios = require('axios');
-const formats = require('ajv-formats-draft2019/formats');
+const addFormats = require('ajv-formats');
 const iriFormats = require('./iri.js');
 const fs = require('fs-extra');
 const klaw = require('klaw');
@@ -11,12 +11,15 @@ const {diffStringsUnified} = require('jest-diff');
 const { version } = require('./package.json');
 
 let DEBUG = false;
+
 let ajv = new Ajv({
-	formats: Object.assign(formats, iriFormats),
+	formats: iriFormats,
 	allErrors: true,
 	logger: DEBUG ? console : false,
 	loadSchema: loadJsonFromUri
 });
+addFormats(ajv);
+
 let verbose = false;
 let schemaMap = {};
 let schemaFolder = null;
