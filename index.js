@@ -45,6 +45,9 @@ async function run(config) {
 		}
 
 		// Merge CLI parameters into config
+		if (!config) {
+			config = {};
+		}
 		for(let key in args) {
 			let value = args[key];
 			if (key === '_' && Array.isArray(value) && value.length > 0) {
