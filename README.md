@@ -50,6 +50,7 @@ It only checks the contained items/collections, but not the other parts of the r
 
 You can also pass a config file via the `--config` option. Simply pass a file path as value.
 Parameters set via CLI will override the corresponding setting in the config file.
+Make sure to use the value `false` to override boolean flags that are set to `true` in the config file.
 
 The config file uses the same option names as above.
 To specify the files to be validated, add an array with paths.
@@ -68,10 +69,12 @@ The schema map is an object instead of string separated with a `=` character.
   },
   "ignoreCerts": false,
   "verbose": false,
-  "lint": false,
+  "lint": true,
   "format": false
 }
 ```
+
+You could now override some options as follows in CLI: `stac-node-validator example.json --config /path/to/config.json --lint false`
 
 ### Development
 

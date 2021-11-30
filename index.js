@@ -21,11 +21,12 @@ let verbose = false;
 let schemaMap = {};
 let schemaFolder = null;
 
-async function run(config = {}) {
+async function run(config) {
 	console.log(`STAC Node Validator v${version}\n`);
 	try {
-		let args = minimist(process.argv.slice(2));
+		let args = config || minimist(process.argv.slice(2), { boolean: ['verbose', 'ignoreCerts', 'lint', 'format'] });
 
+		// Read config from file
 		if (typeof args.config === 'string') {
 			let configFile;
 			try {
@@ -39,18 +40,17 @@ async function run(config = {}) {
 				throw new Error('Config file is invalid JSON.');
 			}
 		}
-		else if (Object.keys(config).length === 0) {
-			for(let key in args) {
-				let value = args[key];
-				if (key === '_' && Array.isArray(value) && value.length > 0) {
-					config.files = value;
-				}
-				else {
-					config[key] = value;
-				}
+
+		// Merge CLI parameters into config
+		for(let key in args) {
+			let value = args[key];
+			if (key === '_' && Array.isArray(value) && value.length > 0) {
+				config.files = value;
+			}
+			else {
+				config[key] = value;
 			}
 		}
-		// else: use config passed via parameter (e.g. from tests)
 
 		verbose = Boolean(config.verbose);
 
