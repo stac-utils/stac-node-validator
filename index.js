@@ -40,8 +40,15 @@ async function run(config = {}) {
 			}
 		}
 		else if (Object.keys(config).length === 0) {
-			config = args;
-			config.files = args._;
+			for(let key in args) {
+				let value = args[key];
+				if (key === '_' && Array.isArray(value) && value.length > 0) {
+					config.files = value;
+				}
+				else {
+					config[key] = value;
+				}
+			}
 		}
 		// else: use config passed via parameter (e.g. from tests)
 
@@ -74,22 +81,31 @@ async function run(config = {}) {
 		}
 
 		let schemaMapArgs = [];
-		if (Array.isArray(config.schemaMap)) {
-			// Recommended way
-			schemaMapArgs = config.schemaMap;
+		if (config.schemaMap && typeof config.schemaMap === 'object') {
+			if (Array.isArray(config.schemaMap)) {
+				// Recommended way via CLI
+				schemaMapArgs = config.schemaMap;
+			}
+			else {
+				// Recommended way via config file
+				schemaMapArgs = config.schemaMap;
+			}
 		}
 		else if (typeof config.schemaMap === 'string') {
 			// Backward compliance
 			schemaMapArgs = config.schemaMap.split(';');
 		}
-		for(let arg of schemaMapArgs) {
-			let parts = arg.split("=");
-			let stat = await fs.lstat(parts[1]);
+		for(let url in schemaMapArgs) {
+			let path = schemaMapArgs[url];
+			if (typeof url !== 'string') { // from CLI
+				[url, path] = url.split("=");
+			}
+			let stat = await fs.lstat(path);
 			if (stat.isFile()) {
-				schemaMap[parts[0]] =	parts[1];
+				schemaMap[url] =	path;
 			}
 			else {
-				console.error(`Schema mapping for ${parts[0]} is not a valid file: ${parts[1]}`);
+				console.error(`Schema mapping for ${url} is not a valid file: ${path}`);
 			}
 		}
 

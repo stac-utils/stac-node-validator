@@ -48,11 +48,14 @@ It only checks the contained items/collections, but not the other parts of the r
 
 ### Config file
 
-You can also pass a config file via the `--config` option. Simply pass a file path as value. No other parameters can be set via CLI then.
+You can also pass a config file via the `--config` option. Simply pass a file path as value.
+Parameters set via CLI will override the corresponding setting in the config file.
 
-The config file uses the same option names as above. To specify the files to be validated, add an aray with paths.
+The config file uses the same option names as above.
+To specify the files to be validated, add an array with paths.
+The schema map is an object instead of string separated with a `=` character.
 
-Example:
+**Example:**
 ```json
 {
   "files": [
@@ -60,7 +63,9 @@ Example:
     "/path/to/your/item.json"
   ],
   "schemas": "/path/to/stac/folder",
-  "schemaMap": "https://stac-extensions.github.io/foobar/v1.0.0/schema.json=./json-schema/schema.json",
+  "schemaMap": {
+    "https://stac-extensions.github.io/foobar/v1.0.0/schema.json": "./json-schema/schema.json"
+  },
   "ignoreCerts": false,
   "verbose": false,
   "lint": false,
