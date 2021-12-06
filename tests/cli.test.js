@@ -4,7 +4,7 @@ let mockExit;
 let consoleInfSpy;
 let consoleLogSpy;
 let consoleErrSpy;
-let initString = 'STAC Node Validator v1.1.0';
+const initString = 'STAC Node Validator v1.1.0';
 
 beforeEach(() => {
 	mockExit = jest.spyOn(process, 'exit').mockImplementation();
