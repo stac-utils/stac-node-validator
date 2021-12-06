@@ -1,9 +1,6 @@
 const app = require('../index');
 
-let mockExit;
-let consoleInfSpy;
-let consoleLogSpy;
-let consoleErrSpy;
+let consoleErrSpy, consoleInfSpy, consoleLogSpy, mockExit;
 const initString = 'STAC Node Validator v1.1.0';
 
 beforeEach(() => {
