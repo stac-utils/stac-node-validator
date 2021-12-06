@@ -7,10 +7,10 @@ let consoleErrSpy;
 let initString = 'STAC Node Validator v1.1.0';
 
 beforeEach(() => {
-	mockExit = jest.spyOn(process, 'exit').mockImplementation(() => {});
-	consoleInfSpy = jest.spyOn(console, 'info').mockImplementation(() => {});
-	consoleLogSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
-	consoleErrSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+	mockExit = jest.spyOn(process, 'exit').mockImplementation();
+	consoleInfSpy = jest.spyOn(console, 'info').mockImplementation();
+	consoleLogSpy = jest.spyOn(console, 'log').mockImplementation();
+	consoleErrSpy = jest.spyOn(console, 'error').mockImplementation();
 });
 
 it('Should return exit code 1 and an error when run without parameters', async () => {
