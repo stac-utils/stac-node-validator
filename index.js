@@ -25,9 +25,16 @@ let schemaMap = {};
 let schemaFolder = null;
 
 async function run(config) {
-	console.log(`STAC Node Validator v${version}\n`);
 	try {
-		let args = config || minimist(process.argv.slice(2));
+		let args = config || minimist(process.argv.slice(2), { boolean: ['verbose', 'ignoreCerts', 'lint', 'format', 'version'] });
+
+		if (args.version) {
+			console.log(version);
+			process.exit(0);
+		}
+		else {
+			console.log(`STAC Node Validator v${version}\n`);
+		}
 
 		verbose = (typeof args.verbose !== 'undefined');
 
