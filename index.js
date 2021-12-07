@@ -73,7 +73,7 @@ async function run(config) {
 				schemaMap[parts[0]] =	parts[1];
 			}
 			else {
-				console.error(`Schema mapping for ${parts[0]} is not a valid file: ${parts[1]}`);
+				console.error(`Schema mapping for ${parts[0]} is not a valid file: ${normalizePath(parts[1])}`);
 			}
 		}
 
@@ -89,7 +89,7 @@ async function run(config) {
 		for(let file of files) {
 			// Read STAC file
 			let json;
-			console.log(`- ${file}`);
+			console.log(`- ${normalizePath(file)}`);
 			try {
 				let fileIsUrl = isUrl(file);
 				if (!fileIsUrl && (doLint || doFormat)) {
