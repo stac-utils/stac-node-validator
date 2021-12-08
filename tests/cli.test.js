@@ -95,7 +95,7 @@ describe('Running with a configured invalid catalog', () => {
 	});
 });
 
-describe('Running with a simple catalog argument', () => {
+describe('Running with a simple catalog argument passed in via CLI', () => {
 	it('Should return exit code 0', async () => {
 		process.argv = ['node_executable', 'app_script', 'tests/catalog.json'];
 
