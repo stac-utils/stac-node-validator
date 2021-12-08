@@ -103,7 +103,38 @@ describe('Running with a configured invalid catalog', () => {
 	});
 });
 
+describe('Running with a simple catalog argument passed in via CLI', () => {
+	it('Should return exit code 0', async () => {
+		process.argv = ['node_executable', 'app_script', 'tests/catalog.json'];
+
+		await app();
+
+		expect(mockExit).toHaveBeenCalledWith(0);
+	});
+
+	it('Should print informational messages', async () => {
+		process.argv = ['node_executable', 'app_script', 'tests/catalog.json'];
+
+		await app();
+
+		expect(consoleLogSpy.mock.calls[0][0]).toContain(initString);
+		expect(consoleLogSpy.mock.calls[1][0]).toContain('tests/catalog.json');
+		expect(consoleInfSpy.mock.calls[0][0]).toContain('Files: 1');
+		expect(consoleInfSpy.mock.calls[1][0]).toContain('Valid: 1');
+		expect(consoleInfSpy.mock.calls[2][0]).toContain('Invalid: 0');
+	});
+
+	it('Should not print an error message', async () => {
+		process.argv = ['node_executable', 'app_script', 'tests/catalog.json'];
+
+		await app();
+
+		expect(consoleErrSpy).not.toHaveBeenCalled();
+	});
+});
+
 afterEach(() => {
+	process.argv = [];
 	mockExit.mockClear();
 	consoleInfSpy.mockClear();
 	consoleLogSpy.mockClear();
