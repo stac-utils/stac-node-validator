@@ -2,7 +2,7 @@ const app = require('../index');
 const { version } = require('../package.json');
 
 let consoleErrSpy, consoleWarnSpy, consoleInfSpy, consoleLogSpy, mockExit;
-const initString = 'STAC Node Validator v${version}';
+const initString = `STAC Node Validator v${version}`;
 
 beforeEach(() => {
 	mockExit = jest.spyOn(process, 'exit').mockImplementation();
