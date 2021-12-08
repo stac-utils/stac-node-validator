@@ -1,7 +1,8 @@
 const app = require('../index');
+const { version } = require('../package.json');
 
 let consoleErrSpy, consoleWarnSpy, consoleInfSpy, consoleLogSpy, mockExit;
-const initString = 'STAC Node Validator v1.1.0';
+const initString = 'STAC Node Validator v${version}';
 
 beforeEach(() => {
 	mockExit = jest.spyOn(process, 'exit').mockImplementation();
@@ -15,6 +16,13 @@ it('Should print init string', async () => {
 	await app();
 
 	expect(consoleLogSpy.mock.calls[0][0]).toContain(initString);
+});
+
+it('Should print version number', async () => {
+	await app({version: true});
+
+	expect(consoleLogSpy.mock.calls[0][0]).toBe(version);
+	expect(mockExit).toHaveBeenCalledWith(0);
 });
 
 describe('Running without parameters or configuration', () => {
