@@ -25,9 +25,16 @@ let schemaMap = {};
 let schemaFolder = null;
 
 async function run(config) {
-	console.log(`STAC Node Validator v${version}\n`);
 	try {
-		let args = config || minimist(process.argv.slice(2), { boolean: ['verbose', 'ignoreCerts', 'lint', 'format'] });
+		let args = config || minimist(process.argv.slice(2), { boolean: ['verbose', 'ignoreCerts', 'lint', 'format', 'version'] });
+
+		if (args.version) {
+			console.log(version);
+			process.exit(0);
+		}
+		else {
+			console.log(`STAC Node Validator v${version}\n`);
+		}
 
 		// Read config from file
 		if (typeof args.config === 'string') {
@@ -105,7 +112,7 @@ async function run(config) {
 				schemaMap[url] =	path;
 			}
 			else {
-				console.error(`Schema mapping for ${url} is not a valid file: ${path}`);
+				console.error(`Schema mapping for ${url} is not a valid file: ${normalizePath(path)}`);
 			}
 		}
 
@@ -121,7 +128,7 @@ async function run(config) {
 		for(let file of files) {
 			// Read STAC file
 			let json;
-			console.log(`- ${file}`);
+			console.log(`- ${normalizePath(file)}`);
 			try {
 				let fileIsUrl = isUrl(file);
 				if (!fileIsUrl && (doLint || doFormat)) {
