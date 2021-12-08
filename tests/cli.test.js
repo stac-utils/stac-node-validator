@@ -107,6 +107,7 @@ afterEach(() => {
 	mockExit.mockClear();
 	consoleInfSpy.mockClear();
 	consoleLogSpy.mockClear();
+	consoleWarnSpy.mockClear();
 	consoleErrSpy.mockClear();
 });
 
@@ -114,5 +115,6 @@ afterAll(() => {
 	mockExit.mockRestore();
 	consoleInfSpy.mockRestore();
 	consoleLogSpy.mockRestore();
+	consoleWarnSpy.mockRestore();
 	consoleErrSpy.mockRestore();
 });
