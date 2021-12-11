@@ -8,6 +8,7 @@ Thumbs.db
 
 # Tests
 /coverage/
+/tests/*.ignore
 
 # Node / npm
 .npm

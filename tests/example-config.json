@@ -1,0 +1,4 @@
+{
+  "files": ["tests/examples/catalog.json"],
+  "verbose": true
+}

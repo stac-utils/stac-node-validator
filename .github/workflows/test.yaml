@@ -21,7 +21,7 @@ jobs:
           'windows-2022',
           'windows-latest',
         ]
-        node: [ '12', '14', '16', 'lts/*' ]
+        node: [ '14', '16', 'lts/*' ]
     runs-on: ${{ matrix.runner }}
     name: ${{ matrix.runner }} runner with Node.js ${{ matrix.node }}
     steps:

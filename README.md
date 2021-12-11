@@ -17,12 +17,12 @@ See the [STAC Validator Comparison](COMPARISON.md) for the features supported by
 
 ## Quick Start
 
-1. Install [node and npm](https://nodejs.org) - should run with any recent version
+1. Install a recent version of [node and npm](https://nodejs.org)
 2. `npx stac-node-validator /path/to/your/file-or-folder` to temporarily install the library and validate the provided file for folder. See the chapters below for advanced usage options.
 
 ## Setup
 
-1. Install [node and npm](https://nodejs.org) - should run with any recent version
+1. Install [node and npm](https://nodejs.org) - should run with any version >= 14. Older versions may still work, but no guarantee.
 2. `npm install -g stac-node-validator` to install the library permanently
 
 ## Usage
@@ -45,6 +45,36 @@ Further options to add to the commands above:
 
 **Note on API support:** Validating lists of STAC items/collections (i.e. `GET /collections` and `GET /collections/:id/items`) is partially supported.
 It only checks the contained items/collections, but not the other parts of the response (e.g. `links`).
+
+### Config file
+
+You can also pass a config file via the `--config` option. Simply pass a file path as value.
+Parameters set via CLI will override the corresponding setting in the config file.
+Make sure to use the value `false` to override boolean flags that are set to `true` in the config file.
+
+The config file uses the same option names as above.
+To specify the files to be validated, add an array with paths.
+The schema map is an object instead of string separated with a `=` character.
+
+**Example:**
+```json
+{
+  "files": [
+    "/path/to/your/catalog.json",
+    "/path/to/your/item.json"
+  ],
+  "schemas": "/path/to/stac/folder",
+  "schemaMap": {
+    "https://stac-extensions.github.io/foobar/v1.0.0/schema.json": "./json-schema/schema.json"
+  },
+  "ignoreCerts": false,
+  "verbose": false,
+  "lint": true,
+  "format": false
+}
+```
+
+You could now override some options as follows in CLI: `stac-node-validator example.json --config /path/to/config.json --lint false`
 
 ### Development
 

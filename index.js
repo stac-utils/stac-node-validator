@@ -26,7 +26,7 @@ let schemaFolder = null;
 
 async function run(config) {
 	try {
-		let args = config || minimist(process.argv.slice(2), { boolean: ['verbose', 'ignoreCerts', 'lint', 'format', 'version'] });
+		let args = config || minimist(process.argv.slice(2));
 
 		if (args.version) {
 			console.log(version);
@@ -36,9 +36,38 @@ async function run(config) {
 			console.log(`STAC Node Validator v${version}\n`);
 		}
 
-		verbose = (typeof args.verbose !== 'undefined');
+		// Read config from file
+		if (typeof args.config === 'string') {
+			let configFile;
+			try {
+				configFile = await fs.readFile(args.config, "utf8");
+			} catch (error) {
+				throw new Error('Config file does not exist.');
+			}
+			try {
+				config = JSON.parse(configFile);
+			} catch (error) {
+				throw new Error('Config file is invalid JSON.');
+			}
+		}
 
-		let files = args._ || args.files || [];
+		// Merge CLI parameters into config
+		if (!config) {
+			config = {};
+		}
+		for(let key in args) {
+			let value = args[key];
+			if (key === '_' && Array.isArray(value) && value.length > 0) {
+				config.files = value;
+			}
+			else {
+				config[key] = value;
+			}
+		}
+
+		verbose = Boolean(config.verbose);
+
+		let files = Array.isArray(config.files) ? config.files : [];
 		if (files.length === 0) {
 			throw new Error('No path or URL specified.');
 		}
@@ -50,14 +79,14 @@ async function run(config) {
 			}
 		}
 
-		if (typeof args.ignoreCerts !== 'undefined') {
+		if (config.ignoreCerts) {
 			process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;
 		}
 
-		if (typeof args.schemas === 'string') {
-			let stat = await fs.lstat(args.schemas);
+		if (typeof config.schemas === 'string') {
+			let stat = await fs.lstat(config.schemas);
 			if (stat.isDirectory()) {
-				schemaFolder = normalizePath(args.schemas);
+				schemaFolder = normalizePath(config.schemas);
 			}
 			else {
 				throw new Error('Schema folder is not a valid STAC directory');
@@ -65,27 +94,30 @@ async function run(config) {
 		}
 
 		let schemaMapArgs = [];
-		if (Array.isArray(args.schemaMap)) {
+		if (config.schemaMap && typeof config.schemaMap === 'object') {
 			// Recommended way
-			schemaMapArgs = args.schemaMap;
+			schemaMapArgs = config.schemaMap;
 		}
-		else if (typeof args.schemaMap === 'string') {
+		else if (typeof config.schemaMap === 'string') {
 			// Backward compliance
-			schemaMapArgs = args.schemaMap.split(';');
+			schemaMapArgs = config.schemaMap.split(';');
 		}
-		for(let arg of schemaMapArgs) {
-			let parts = arg.split("=");
-			let stat = await fs.lstat(parts[1]);
+		for(let url in schemaMapArgs) {
+			let path = schemaMapArgs[url];
+			if (typeof url === 'string') { // from CLI
+				[url, path] = path.split("=");
+			}
+			let stat = await fs.lstat(path);
 			if (stat.isFile()) {
-				schemaMap[parts[0]] =	parts[1];
+				schemaMap[url] =	path;
 			}
 			else {
-				console.error(`Schema mapping for ${parts[0]} is not a valid file: ${normalizePath(parts[1])}`);
+				console.error(`Schema mapping for ${url} is not a valid file: ${normalizePath(path)}`);
 			}
 		}
 
-		const doLint = (typeof args.lint !== 'undefined');
-		const doFormat = (typeof args.format !== 'undefined');
+		const doLint = Boolean(config.lint);
+		const doFormat = Boolean(config.format);
 	
 		let stats = {
 			files: files.length,
@@ -236,7 +268,7 @@ async function run(config) {
 							fileValid = false;
 							if (core && !DEBUG) {
 								if (verbose) {
-									console.info("-- Validation error in core, skipping extension validation");
+									console.warn("-- Validation error in core, skipping extension validation");
 								}
 								break;
 							}
