@@ -1,8 +1,0 @@
-{
-  "stac_version": "1.0.0",
-  "id": "example",
-  "type": "Catalog",
-  "title": "Example Catalog",
-  "description": "A minimal example for tests",
-  "links": []
-}

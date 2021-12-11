@@ -26,7 +26,7 @@ let schemaFolder = null;
 
 async function run(config) {
 	try {
-		let args = config || minimist(process.argv.slice(2), { boolean: ['verbose', 'ignoreCerts', 'lint', 'format', 'version'] });
+		let args = config || minimist(process.argv.slice(2));
 
 		if (args.version) {
 			console.log(version);
@@ -104,7 +104,7 @@ async function run(config) {
 		}
 		for(let url in schemaMapArgs) {
 			let path = schemaMapArgs[url];
-			if (typeof url !== 'string') { // from CLI
+			if (typeof url === 'string') { // from CLI
 				[url, path] = path.split("=");
 			}
 			let stat = await fs.lstat(path);
@@ -268,7 +268,7 @@ async function run(config) {
 							fileValid = false;
 							if (core && !DEBUG) {
 								if (verbose) {
-									console.info("-- Validation error in core, skipping extension validation");
+									console.warn("-- Validation error in core, skipping extension validation");
 								}
 								break;
 							}
