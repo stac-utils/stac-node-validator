@@ -24,6 +24,8 @@ let verbose = false;
 let schemaMap = {};
 let schemaFolder = null;
 
+let booleanArgs = ['verbose', 'ignoreCerts', 'lint', 'format', 'version'];
+
 async function run(config) {
 	try {
 		let args = config || minimist(process.argv.slice(2));
@@ -59,6 +61,14 @@ async function run(config) {
 			let value = args[key];
 			if (key === '_' && Array.isArray(value) && value.length > 0) {
 				config.files = value;
+			}
+			else if (booleanArgs.includes(key)) {
+				if (typeof value === 'string' && value.toLowerCase() === 'false') {
+					config[key] = false;
+				}
+				else {
+					config[key] = Boolean(value);
+				}
 			}
 			else {
 				config[key] = value;
