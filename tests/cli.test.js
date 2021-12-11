@@ -4,6 +4,12 @@ const { version } = require('../package.json');
 let consoleErrSpy, consoleWarnSpy, consoleInfSpy, consoleLogSpy, mockExit;
 const initString = `STAC Node Validator v${version}`;
 
+const invalidSchemaPath = 'tests/invalid-schema.json';
+const invalidSchemaCatalogPath = 'tests/catalog-with-invalid-schema.json';
+
+const validCatalogPath = 'tests/catalog.json';
+const invalidCatalogPath = 'tests/invalid-catalog.json';
+
 beforeEach(() => {
 	mockExit = jest.spyOn(process, 'exit').mockImplementation();
 	consoleInfSpy = jest.spyOn(console, 'info').mockImplementation();
@@ -39,7 +45,7 @@ describe('Running without parameters or configuration', () => {
 });
 
 describe('Running with a configured valid catalog', () => {
-	let files = ['tests/catalog.json'];
+	let files = [validCatalogPath];
 
 	it('Should return exit code 0', async () => {
 		await app({files});
@@ -51,7 +57,7 @@ describe('Running with a configured valid catalog', () => {
 		await app({files});
 
 		expect(consoleLogSpy.mock.calls[0][0]).toContain(initString);
-		expect(consoleLogSpy.mock.calls[1][0]).toContain('tests/catalog.json');
+		expect(consoleLogSpy.mock.calls[1][0]).toContain(validCatalogPath);
 		expect(consoleInfSpy.mock.calls[0][0]).toContain('Files: 1');
 		expect(consoleInfSpy.mock.calls[1][0]).toContain('Valid: 1');
 		expect(consoleInfSpy.mock.calls[2][0]).toContain('Invalid: 0');
@@ -65,7 +71,7 @@ describe('Running with a configured valid catalog', () => {
 });
 
 describe('Running with a configured invalid catalog', () => {
-	let files = ['tests/invalid-catalog.json'];
+	let files = [invalidCatalogPath];
 	it('Should return exit code 1', async () => {
 		await app({files});
 
@@ -76,7 +82,7 @@ describe('Running with a configured invalid catalog', () => {
 		await app({files});
 
 		expect(consoleLogSpy.mock.calls[0][0]).toContain(initString);
-		expect(consoleLogSpy.mock.calls[1][0]).toContain('tests/invalid-catalog.json');
+		expect(consoleLogSpy.mock.calls[1][0]).toContain(invalidCatalogPath);
 		expect(consoleInfSpy.mock.calls[0][0]).toContain('Files: 1');
 		expect(consoleInfSpy.mock.calls[1][0]).toContain('Valid: 0');
 		expect(consoleInfSpy.mock.calls[2][0]).toContain('Invalid: 1');
@@ -130,6 +136,28 @@ describe('Running with a simple catalog argument passed in via CLI', () => {
 		await app();
 
 		expect(consoleErrSpy).not.toHaveBeenCalled();
+	});
+});
+
+describe('Running with an invalid schema', () => {
+	it('Should return exit code 1', async () => {
+		await app(
+			{'schemaMap': `https://example.org/invalid-schema.json=${invalidSchemaPath}`, 'files': [invalidSchemaCatalogPath]}
+		);
+
+		expect(mockExit).toHaveBeenCalledWith(1);
+	});
+
+	it('Should print informational messages', async () => {
+		await app(
+			{'schemaMap': `https://example.org/invalid-schema.json=${invalidSchemaPath}`, 'files': [invalidSchemaCatalogPath]}
+		);
+
+		expect(consoleLogSpy.mock.calls[0][0]).toContain(initString);
+		expect(consoleLogSpy.mock.calls[1][0]).toContain(invalidSchemaCatalogPath);
+		expect(consoleInfSpy.mock.calls[0][0]).toContain('Files: 1');
+		expect(consoleInfSpy.mock.calls[1][0]).toContain('Valid: 0');
+		expect(consoleInfSpy.mock.calls[2][0]).toContain('Invalid: 1');
 	});
 });
 
