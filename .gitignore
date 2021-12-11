@@ -1,3 +1,15 @@
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editors
+/.idea/
+/.vscode/
+
+# Tests
 /coverage/
+
+# Node / npm
+.npm
 /node_modules/
-package-lock.json
+/package-lock.json
