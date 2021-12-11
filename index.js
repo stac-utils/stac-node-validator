@@ -38,6 +38,14 @@ async function run(config) {
 			console.log(`STAC Node Validator v${version}\n`);
 		}
 
+		// Show minimal help output
+		if (args.help) {
+			console.log("For more information on using this command line tool, please visit");
+			console.log("https://github.com/stac-utils/stac-node-validator/blob/master/README.md#usage");
+
+			process.exit(0);
+		}
+
 		// Read config from file
 		if (typeof args.config === 'string') {
 			let configFile;

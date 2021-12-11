@@ -33,6 +33,15 @@ it('Should print version number', async () => {
 	expect(mockExit).toHaveBeenCalledWith(0);
 });
 
+it('Should print help', async () => {
+	await app({help: true});
+
+	expect(consoleLogSpy.mock.calls[0][0]).toContain(initString);
+	expect(consoleLogSpy.mock.calls[1][0]).toContain("For more information on using this command line tool, please visit");
+	expect(consoleLogSpy.mock.calls[2][0]).toContain("https://github.com/stac-utils/stac-node-validator/blob/master/README.md#usage");
+	expect(mockExit).toHaveBeenCalledWith(0);
+});
+
 describe('Running without parameters or configuration', () => {
 	it('Should return exit code 1', async () => {
 		await app();
