@@ -14,7 +14,7 @@ Here I'd like to give an overview of what the validators are capable of and what
 
 |                            | Python Validator                           | PySTAC              | STAC Node Validator |
 | :------------------------- | ------------------------------------------ | ------------------- | ------------------- |
-| Validator Version          | 1.0.1                                      | 0.5.2               | 1.1.0               |
+| Validator Version          | 1.0.1                                      | 0.5.2               | 1.2.0               |
 | Language                   | Python 3.6                                 | Python 3            | NodeJS              |
 | CLI                        | Yes                                        | No                  | Yes                 |
 | Programmatic               | Yes                                        | Yes                 | Planned             |
@@ -32,7 +32,7 @@ Here I'd like to give an overview of what the validators are capable of and what
 | Validates Core Extensions                | Yes                 | Yes                 | Yes                                         |
 | Validates External / Custom Extensions   | No                  | No                  | Yes                                         |
 | Validates STAC API responses             | No                  | No                  | Partially (only items/collections in lists) |
-| Validates STAC API extensions            | No                  | No                  | No                                          |
+| Validates STAC API conformance classes   | No                  | No                  | No                                          |
 
 ## Other Features
 
