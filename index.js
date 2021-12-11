@@ -15,6 +15,7 @@ let DEBUG = false;
 let ajv = new Ajv({
 	formats: iriFormats,
 	allErrors: true,
+	strict: false,
 	logger: DEBUG ? console : false,
 	loadSchema: loadJsonFromUri
 });
@@ -24,7 +25,7 @@ let verbose = false;
 let schemaMap = {};
 let schemaFolder = null;
 
-let booleanArgs = ['verbose', 'ignoreCerts', 'lint', 'format', 'version'];
+let booleanArgs = ['verbose', 'ignoreCerts', 'lint', 'format', 'version', 'strict'];
 
 async function run(config) {
 	try {
@@ -99,6 +100,11 @@ async function run(config) {
 
 		if (config.ignoreCerts) {
 			process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;
+		}
+		if (config.strict) {
+			ajv.opts.strictSchema = true;
+			ajv.opts.strictNumbers = true;
+			ajv.opts.strictTuples = true;
 		}
 
 		if (typeof config.schemas === 'string') {

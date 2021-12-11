@@ -40,6 +40,7 @@ Further options to add to the commands above:
 - To validate against a specific local schema (e.g. an external extension): `--schemaMap https://stac-extensions.github.io/foobar/v1.0.0/schema.json=./json-schema/schema.json`
 - To not verify SSL/TLS certificates: `--ignoreCerts`
 - Add `--verbose` to get a more detailed output
+- Add `--strict` to enable strict mode in validation for schemas and numbers (as defined by [ajv](https://ajv.js.org/strict-mode.html) for options `strictSchema`, `strictNumbers` and `strictTuples`)
 - To lint local JSON files: `--lint` (add `--verbose` to get a diff with the changes required)
 - To format / pretty-print local JSON files: `--format` (Attention: this will override the source files without warning!)
 
@@ -70,7 +71,8 @@ The schema map is an object instead of string separated with a `=` character.
   "ignoreCerts": false,
   "verbose": false,
   "lint": true,
-  "format": false
+  "format": false,
+  "strict": true
 }
 ```
 
