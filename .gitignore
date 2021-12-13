@@ -13,4 +13,3 @@ Thumbs.db
 # Node / npm
 .npm
 /node_modules/
-/package-lock.json
