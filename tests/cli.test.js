@@ -1,6 +1,7 @@
 const app = require('../index');
 const { version } = require('../package.json');
 const fs = require('fs/promises');
+const { exec } = require("child_process");
 
 let consoleErrSpy, consoleWarnSpy, consoleInfSpy, consoleLogSpy, mockExit;
 const initString = `STAC Node Validator v${version}`;
@@ -18,6 +19,15 @@ beforeEach(() => {
 	consoleLogSpy = jest.spyOn(console, 'log').mockImplementation();
 	consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
 	consoleErrSpy = jest.spyOn(console, 'error').mockImplementation();
+});
+
+it('Should be executable via shell', done => {
+	exec("node ./bin/cli.js --version", (error, stdout, stderr) => {
+		expect(error).toBe(null);
+		expect(stderr).toBe("");
+		expect(stdout).toContain(version);
+		done();
+	});
 });
 
 it('Should print init string', async () => {
