@@ -26,7 +26,7 @@ jobs:
     name: ${{ matrix.runner }} runner with Node.js ${{ matrix.node }}
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2.5.1
+      - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node }}
       - run: npm install
