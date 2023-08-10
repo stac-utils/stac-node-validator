@@ -6,7 +6,7 @@ See the [STAC Validator Comparison](COMPARISON.md) for the features supported by
 
 ## Versions
 
-**Current version: 1.2.2**
+**Current version: 1.3.0**
 
 | STAC Node Validator Version | Supported STAC Versions |
 | --------------------------- | ----------------------- |
