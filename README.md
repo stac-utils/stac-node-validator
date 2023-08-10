@@ -32,7 +32,8 @@ See the [STAC Validator Comparison](COMPARISON.md) for the features supported by
 
 Instead of paths to local files, you can also use HTTP(S) URLs. Other protocols such as S3 are not supported yet.
 
-- Validate a single folder (considers all `json` files in `examples` folders): `stac-node-validator ./stac-spec`
+- Validate a single folder (considers all `json` files in the `examples` folder): `stac-node-validator ./stac-spec`
+- Validate a single folder (considers all `json` files the given folder): `stac-node-validator ./stac-spec --all`
 
 Further options to add to the commands above:
 
@@ -72,7 +73,8 @@ The schema map is an object instead of string separated with a `=` character.
   "verbose": false,
   "lint": true,
   "format": false,
-  "strict": true
+  "strict": true,
+	"all": false
 }
 ```
 

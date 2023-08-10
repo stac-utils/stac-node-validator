@@ -25,7 +25,7 @@ let verbose = false;
 let schemaMap = {};
 let schemaFolder = null;
 
-let booleanArgs = ['verbose', 'ignoreCerts', 'lint', 'format', 'version', 'strict'];
+let booleanArgs = ['verbose', 'ignoreCerts', 'lint', 'format', 'version', 'strict', 'all'];
 
 async function run(config) {
 	try {
@@ -94,7 +94,12 @@ async function run(config) {
 			// Special handling for reading directories
 			let stat = await fs.lstat(files[0]);
 			if (stat.isDirectory()) {
-				files = await readExamples(files[0]);
+				if (config.all) {
+					files = await readFolder(files[0], /.+\.json$/i);
+				}
+				else {
+					files = await readFolder(files[0], /(^|\/|\\)examples(\/|\\).+\.json$/i);
+				}
 			}
 		}
 
@@ -357,11 +362,11 @@ function isUrl(uri) {
 	return false;
 }
 
-async function readExamples(folder) {
+async function readFolder(folder, pattern) {
 	var files = [];
 	for await (let file of klaw(folder, {depthLimit: -1})) {
 		let relPath = path.relative(folder, file.path);
-		if (relPath.match(/(^|\/|\\)examples(\/|\\).+\.json$/i)) {
+		if (relPath.match(pattern)) {
 			files.push(file.path);
 		}
 	}
