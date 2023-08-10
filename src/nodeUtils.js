@@ -1,0 +1,244 @@
+const klaw = require('klaw');
+const fs = require('fs-extra');
+const path = require('path');
+
+const { isUrl } = require('./utils');
+
+const SCHEMA_CHOICE = ['anyOf', 'oneOf'];
+
+function abort(message) {
+	console.error(message);
+	process.exit(1);
+}
+
+function printConfig(config) {
+	console.group("Config");
+	console.dir(config);
+	console.groupEnd();
+}
+
+function printSummary(summary) {
+	console.group(`Summary (${summary.total})`);
+	console.info("Valid: " + summary.valid);
+	console.info("Invalid: " + summary.invalid);
+	if (summary.malformed !== null) {
+		console.info("Malformed: " + summary.malformed);
+	}
+	console.info("Skipped: " + summary.skipped);
+	console.groupEnd();
+}
+
+function printLint(lint, config) {
+	const what = [];
+	config.lint && what.push('Linting');
+	config.format && what.push('Formatting');
+	const title = what.join(' and ');
+
+	if (!lint) {
+		if (config.lint || config.format) {
+			console.group(title);
+			console.warn('Not supported for remote files');
+			console.groupEnd();
+		}
+		return;
+	}
+
+	if (config.verbose) {
+		console.group(title);
+		if (lint.valid) {
+			console.info('File is well-formed');
+		}
+		else {
+			if (lint.fixed) {
+				console.info('File was malformed -> fixed the issue');
+			}
+			else {
+				console.error('File is malformed -> use `--format` to fix the issue');
+			}
+		}
+		if (lint.error) {
+			console.error(lint.error);
+		}
+		if (lint.diff) {
+			console.groupCollapsed("File Diff");
+			console.log(lint.diff);
+			console.groupEnd();
+		}
+		console.groupEnd();
+	}
+	else if (!lint.valid && !lint.fixed) {
+		console.group(title);
+		console.error('File is malformed -> use `--format` to fix the issue');
+		if (lint.error) {
+			console.error(lint.error);
+		}
+		console.groupEnd();
+	}
+}
+
+function printReport(report, config) {
+	if (report.valid && !config.verbose) {
+		return;
+	}
+
+	console.group(report.id || "Report");
+
+	if (config.verbose && report.version) {
+		console.log(`STAC Version: ${report.version}`);
+	}
+
+	if (report.messages) {
+		report.messages.forEach(str => console.info(str));
+	}
+
+	if (!report.apiList) {
+		printLint(report.lint, config);
+	}
+
+	if (!report.valid || config.verbose) {
+		printAjvValidationResult(report.results.core, report.type, report.valid, config);
+		if (report.type) {
+			const count = Object.keys(report.results.extensions).length;
+			if (count > 0) {
+				console.group("Extensions");
+				Object.entries(report.results.extensions)
+					.forEach(([ext, result]) => printAjvValidationResult(result, ext, report.valid, config));
+				console.groupEnd();
+			}
+			else {
+				console.info("Extensions: None");
+			}
+		}
+	}
+
+	report.children.forEach(child => printReport(child, config));
+
+	console.groupEnd();
+}
+
+function printAjvValidationResult(result, category, reportValid, config) {
+	if (!category) {
+		return;
+	}
+	if (!config.verbose && isUrl(category)) {
+		const match = category.match(/^https?:\/\/stac-extensions\.github\.io\/([^/]+)\/v?([^/]+)(?:\/([^/.]+))?\/schema/);
+		if (match) {
+			let title = match[1];
+			if (match[3]) {
+				title += ' - ' + formatKey(match[3]);
+			}
+			category = `${title} (${match[2]})`;
+		}
+	}
+	if (result.length > 0) {
+		console.group(category);
+		if (config.verbose) {
+			console.dir(result);
+		}
+		else {
+			result
+				.filter(error => result.length === 1 || !SCHEMA_CHOICE.includes(error.keyword)) // Remove messages that are usually not so important (anyOf/oneOf)
+				.sort((a,b) => {
+					// Sort so that anyOf/oneOf related messages come last, these are usually not so important
+					let aa = isSchemaChoice(a.schemaPath);
+					let bb = isSchemaChoice(b.schemaPath);
+					if (aa && bb) {
+						return 0;
+					}
+					else if (aa) {
+						return 1;
+					}
+					else if (bb) {
+						return -1;
+					}
+					else {
+						return 0;
+					}
+				})
+				.map(error => makeAjvErrorMessage(error)) // Convert to string
+				.filter((value, i, array) => array.indexOf(value) === i) // Remove duplicates
+				.forEach((msg, i) => console.error(`${i+1}. ${msg}`)); // Print it as list
+		}
+		console.groupEnd();
+	}
+	else if (!reportValid || config.verbose) {
+		console.log(`${category}: valid`);
+	}
+}
+
+function isSchemaChoice(schemaPath) {
+	return typeof schemaPath === 'string' && schemaPath.match(/\/(one|any)Of\/\d+\//);
+}
+
+function makeAjvErrorMessage(error) {
+	let message = error.message;
+	if (Object.keys(error.params).length > 0) {
+		let params = Object.entries(error.params)
+			.map(([key, value]) => {
+				let label = key.replace(/([^A-Z]+)([A-Z])/g, "$1 $2").toLowerCase();
+				return `${label}: ${value}`;
+			})
+			.join(', ')
+		message += ` (${params})`;
+	}
+	if (error.instancePath) {
+		return `${error.instancePath} ${message}`;
+	}
+	else if (error.schemaPath) {
+		return `${message}, for schema ${error.schemaPath}`;
+	}
+	else if (message) {
+		return message;
+	}
+	else {
+		return String(error);
+	}
+}
+
+async function resolveFiles(files, depth = -1) {
+	const resolved = [];
+	const extensions = [".geojson", ".json"];
+	const klawOptions = {
+		depthLimit: depth
+	}
+	for (const file of files) {
+		if (isUrl(file)) {
+			resolved.push(file);
+			continue;
+		}
+
+		// Special handling for reading directories
+		const stat = await fs.lstat(file);
+		if (stat.isDirectory()) {
+			;
+			for await (const child of klaw(file, klawOptions)) {
+				const ext = path.extname(child.path).toLowerCase();
+				if (extensions.includes(ext)) {
+					resolved.push(child.path);
+				}
+			}
+		}
+		else {
+			resolved.push(file);
+		}
+	}
+	return resolved;
+}
+
+function strArrayToObject(list, sep = "=") {
+	let map = {};
+	for (let str of list) {
+		let [key, value] = str.split(sep, 2);
+		map[key] = value;
+	}
+	return map;
+}
+
+module.exports = {
+	abort,
+	printConfig,
+	printReport,
+	printSummary,
+	resolveFiles,
+	strArrayToObject
+};

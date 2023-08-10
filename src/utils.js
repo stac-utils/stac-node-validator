@@ -1,0 +1,92 @@
+const Ajv = require('ajv');
+const addFormats = require('ajv-formats');
+const iriFormats = require('./iri');
+
+const SUPPORTED_PROTOCOLS = ['http', 'https'];
+
+function isObject(obj) {
+	return (typeof obj === 'object' && obj === Object(obj) && !Array.isArray(obj));
+}
+
+function isUrl(uri) {
+	if (typeof uri === 'string') {
+		let part = uri.match(/^(\w+):\/\//i);
+		if (part) {
+			if (!SUPPORTED_PROTOCOLS.includes(part[1].toLowerCase())) {
+				throw new Error(`Given protocol "${part[1]}" is not supported.`);
+			}
+			return true;
+		}
+	}
+	return false;
+}
+
+function createAjv(config) {
+	let instance = new Ajv({
+		formats: iriFormats,
+		allErrors: config.verbose,
+		strict: false,
+		logger: config.verbose ? console : false,
+		loadSchema: async (uri) => await loadSchemaFromUri(uri, config)
+	});
+	addFormats(instance);
+	if (config.strict) {
+		instance.opts.strictSchema = true;
+		instance.opts.strictNumbers = true;
+		instance.opts.strictTuples = true;
+	}
+	return instance;
+}
+
+async function loadSchemaFromUri(uri, config) {
+	if (isObject(config.schemaMap) && config.schemaMap[uri]) {
+		uri = config.schemaMap[uri];
+	}
+	else if (config.schemas) {
+		uri = uri.replace(/^https:\/\/schemas\.stacspec\.org\/v[^\/]+/, config.schemas);
+	}
+	return await config.loader(uri);
+}
+
+function normalizePath(path) {
+	return path.replace(/\\/g, '/').replace(/\/$/, "");
+}
+
+function getSummary(result, config) {
+	let summary = {
+		total: 0,
+		valid: 0,
+		invalid: 0,
+		malformed: null,
+		skipped: 0
+	};
+	if (result.children.length > 0) {
+		// todo: speed this up by computing in one iteration
+		summary.total = result.children.length;
+		summary.valid = result.children.filter(c => c.valid === true).length;
+		summary.invalid = result.children.filter(c => c.valid === false).length;
+		if (config.lint || config.format) {
+			summary.malformed = result.children.filter(c => c.lint && c.lint.valid).length;
+		}
+		summary.skipped = result.children.filter(c => c.skipped).length;
+	}
+	else {
+		summary.total = 1;
+		summary.valid = result.valid === true ? 1 : 0;
+		summary.invalid = result.valid === false ? 1 : 0;
+		if (result.lint) {
+			summary.malformed = result.lint.valid ? 0 : 1;
+		}
+		summary.skipped = result.skipped ? 1 : 0;
+	}
+	return summary;
+}
+
+module.exports = {
+	createAjv,
+	getSummary,
+	isObject,
+	isUrl,
+	loadSchemaFromUri,
+	normalizePath
+};
