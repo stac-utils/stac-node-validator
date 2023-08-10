@@ -186,7 +186,7 @@ async function run(config) {
 					if (fileIsUrl && (doLint || doFormat)) {
 						let what = [];
 						doLint && what.push('Linting');
-						doLint && what.push('Formatting');
+						doFormat && what.push('Formatting');
 						console.warn(`-- ${what.join(' and ')} not supported for remote files`);
 					}
 				}
