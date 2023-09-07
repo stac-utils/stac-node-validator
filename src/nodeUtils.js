@@ -2,7 +2,7 @@ const klaw = require('klaw');
 const fs = require('fs-extra');
 const path = require('path');
 
-const { isUrl } = require('./utils');
+const { isUrl, isObject } = require('./utils');
 
 const SCHEMA_CHOICE = ['anyOf', 'oneOf'];
 
@@ -109,6 +109,9 @@ function printReport(report, config) {
 				console.info("Extensions: None");
 			}
 		}
+		if (config.custom) {
+			printAjvValidationResult(report.results.custom, 'Custom', report.valid, config);
+		}
 	}
 
 	report.children.forEach(child => printReport(child, config));
@@ -172,7 +175,7 @@ function isSchemaChoice(schemaPath) {
 
 function makeAjvErrorMessage(error) {
 	let message = error.message;
-	if (Object.keys(error.params).length > 0) {
+	if (isObject(error.params) && Object.keys(error.params).length > 0) {
 		let params = Object.entries(error.params)
 			.map(([key, value]) => {
 				let label = key.replace(/([^A-Z]+)([A-Z])/g, "$1 $2").toLowerCase();

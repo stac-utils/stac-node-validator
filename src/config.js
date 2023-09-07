@@ -37,6 +37,11 @@ function fromCLI() {
     description: 'Validate against a specific local schema (e.g. an external extension). Provide the schema URI and the local path separated by an equal sign.\nExample: https://stac-extensions.github.io/foobar/v1.0.0/schema.json=./json-schema/schema.json',
 		coerce: strArrayToObject
   })
+	.option('custom', {
+    type: 'string',
+		default: null,
+    description: 'Load a custom validation routine from a JavaScript file.'
+	})
   .option('ignoreCerts', {
     type: 'boolean',
 		default: false,

@@ -1,4 +1,5 @@
 const fs = require('fs-extra');
+const path = require('path');
 const { version } = require('../package.json');
 const ConfigSource = require('./config.js');
 const validate = require('../src/index.js');
@@ -69,6 +70,12 @@ async function run() {
 			}
 			return report;
 		}
+	}
+
+	if (config.custom) {
+		const absPath = path.resolve(process.cwd(), config.custom);
+		const validator = require(absPath);
+		config.customValidator = new validator();
 	}
 
 	// Finally run validation

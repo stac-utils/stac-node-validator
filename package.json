@@ -27,11 +27,13 @@
   "dependencies": {
     "ajv": "^8.8.2",
     "ajv-formats": "^2.1.1",
+    "assert": "^2.0.0",
     "axios": "^1.1.3",
     "compare-versions": "^6.1.0",
     "fs-extra": "^10.0.0",
     "jest-diff": "^29.0.1",
     "klaw": "^4.0.1",
+    "stac-js": "^0.0.8",
     "yargs": "^17.7.2"
   },
   "devDependencies": {

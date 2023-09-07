@@ -2,6 +2,8 @@ const versions = require('compare-versions');
 
 const { createAjv, isUrl, loadSchemaFromUri, normalizePath, isObject } = require('./utils');
 const defaultLoader = require('./loader/default');
+const BaseValidator = require('./baseValidator');
+const Test = require('./test');
 
 /**
  * @typedef Config
@@ -10,6 +12,7 @@ const defaultLoader = require('./loader/default');
  * @property {string|null} [schemas=null] Validate against schemas in a local or remote STAC folder.
  * @property {Object.<string, string>} [schemaMap={}] Validate against a specific local schema (e.g. an external extension). Provide the schema URI as key and the local path as value.
  * @property {boolean} [strict=false] Enable strict mode in validation for schemas and numbers (as defined by ajv for options `strictSchema`, `strictNumbers` and `strictTuples
+ * @property {BaseValidator} [customValidator=null] A validator with custom rules.
  */
 
 /**
@@ -20,10 +23,17 @@ const defaultLoader = require('./loader/default');
  * @property {string} version
  * @property {boolean} valid
  * @property {Array.<string>} messages
- * @property {Array.<*>} results
  * @property {Array.<Report>} children
- * @property {Extensions.<Object>} extensions
+ * @property {Results} results
  * @property {boolean} apiList
+ */
+
+/**
+ * @typedef Results
+ * @type {Object}
+ * @property {OArray.<Error>} core
+ * @property {Object.<string, Array.<Error>>} extensions
+ * @property {Array.<Error>} custom
  */
 
 /**
@@ -40,7 +50,8 @@ function createReport() {
 		children: [],
 		results: {
 			core: [],
-			extensions: {}
+			extensions: {},
+			custom: []
 		},
 		apiList: false
 	};
@@ -129,6 +140,10 @@ async function validateOne(source, config, report = null) {
 	report.version = data.stac_version;
 	report.type = data.type;
 
+	if (config.customValidator) {
+		data = await config.customValidator.afterLoading(data, report, config);
+	}
+
 	if (typeof config.lintFn === 'function') {
 		report = await config.lintFn(source, report, config);
 	}
@@ -179,6 +194,24 @@ async function validateOne(source, config, report = null) {
 	}
 	for(const schema of schemas) {
 		await validateSchema('extensions', schema, data, report, config);
+	}
+
+	if (config.customValidator) {
+		const { default: create } = await import('stac-js');
+		const stac = create(data, false, false);
+		try {
+			const test = new Test();
+			await config.customValidator.afterValidation(stac, test, report, config);
+			report.results.custom = test.errors;
+		} catch (error) {
+			report.results.custom = [
+				error
+			];
+		} finally {
+			if (report.results.custom.length > 0) {
+				report.valid = false;
+			}
+		}
 	}
 
 	return report;
