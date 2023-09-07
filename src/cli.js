@@ -14,12 +14,10 @@ async function run() {
 	console.log();
 
 	// Read config from CLI and config file (if any)
-	const cliConfig = ConfigSource.fromCLI();
-	let config = {};
-	if (typeof cliConfig.config === 'string') {
-		config = ConfigSource.fromFile(config.config);
+	let config = ConfigSource.fromCLI();
+	if (typeof config.config === 'string') {
+		Object.assign(config, await ConfigSource.fromFile(config.config));
 	}
-	Object.assign(config, cliConfig);
 	if (!config.loader) {
 		config.loader = nodeLoader;
 	}
@@ -31,7 +29,8 @@ async function run() {
 
 	// Abort if no files have been provided
 	if (config.files.length === 0) {
-		abort('No path or URL specified.');
+		console.error('No path or URL specified.');
+		process.exit(1);
 	}
 
 	config.depth = config.depth >= 0 ? config.depth : -1;
@@ -50,7 +49,8 @@ async function run() {
 			config.schemas = normalizePath(config.schemas);
 		}
 		else {
-			abort('Schema folder is not a directory');
+			console.error('Schema folder is not a directory');
+			process.exit(1);
 		}
 	}
 

@@ -1,4 +1,4 @@
-const BaseValidator = require('./src/baseValidator.js');
+const BaseValidator = require('stac-node-validator/src/baseValidator.js');
 
 class CustomValidator extends BaseValidator {
 

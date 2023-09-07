@@ -6,7 +6,7 @@ See the [STAC Validator Comparison](COMPARISON.md) for the features supported by
 
 ## Versions
 
-**Current version: 2.0.0-beta.2**
+**Current version: 2.0.0-beta.3**
 
 | STAC Node Validator Version | Supported STAC Versions |
 | --------------------------- | ----------------------- |
@@ -52,35 +52,11 @@ It only checks the contained items/collections, but not the other parts of the r
 ### Config file
 
 You can also pass a config file via the `--config` option. Simply pass a file path as value.
-Parameters set via CLI will override the corresponding setting in the config file.
-Make sure to use the value `false` to override boolean flags that are set to `true` in the config file.
+Parameters set via CLI will not override the corresponding setting in the config file.
 
 The config file uses the same option names as above.
 To specify the files to be validated, add an array with paths.
 The schema map is an object instead of string separated with a `=` character.
-
-**Example:**
-```json
-{
-  "files": [
-    "/path/to/your/catalog.json",
-    "/path/to/your/item.json"
-  ],
-  "schemas": "/path/to/stac/folder",
-  "schemaMap": {
-    "https://stac-extensions.github.io/foobar/v1.0.0/schema.json": "./json-schema/schema.json"
-  },
-  "ignoreCerts": false,
-  "verbose": false,
-  "lint": true,
-  "format": false,
-  "strict": true,
-	"all": false,
-	"custom": null
-}
-```
-
-You could now override some options as follows in CLI: `stac-node-validator example.json --config /path/to/config.json --lint false`
 
 ### Development
 
