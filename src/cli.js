@@ -81,7 +81,7 @@ async function run() {
 	// Finally run validation
 	const result = await validate(data, config);
 
-	// Print not supported error once for API lists
+	// Print not a "supported error" once for API lists
 	if (result.apiList) {
 		printLint(null, config);
 	}

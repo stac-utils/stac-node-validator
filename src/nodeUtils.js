@@ -53,11 +53,11 @@ function printLint(lint, config) {
 				console.info('File was malformed -> fixed the issue');
 			}
 			else {
-				console.error('File is malformed -> use `--format` to fix the issue');
+				console.warn('File is malformed -> use `--format` to fix the issue');
 			}
 		}
 		if (lint.error) {
-			console.error(lint.error);
+			console.warn(lint.error);
 		}
 		if (lint.diff) {
 			console.groupCollapsed("File Diff");
@@ -68,9 +68,9 @@ function printLint(lint, config) {
 	}
 	else if (!lint.valid && !lint.fixed) {
 		console.group(title);
-		console.error('File is malformed -> use `--format` to fix the issue');
+		console.warn('File is malformed -> use `--format` to fix the issue');
 		if (lint.error) {
-			console.error(lint.error);
+			console.warn(lint.error);
 		}
 		console.groupEnd();
 	}
@@ -160,7 +160,7 @@ function printAjvValidationResult(result, category, reportValid, config) {
 				})
 				.map(error => makeAjvErrorMessage(error)) // Convert to string
 				.filter((value, i, array) => array.indexOf(value) === i) // Remove duplicates
-				.forEach((msg, i) => console.error(`${i+1}. ${msg}`)); // Print it as list
+				.forEach((msg, i) => console.warn(`${i+1}. ${msg}`)); // Print it as list
 		}
 		console.groupEnd();
 	}
