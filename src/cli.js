@@ -3,7 +3,7 @@ const path = require('path');
 const { version } = require('../package.json');
 const ConfigSource = require('./config.js');
 const validate = require('../src/index.js');
-const { printConfig, printSummary, resolveFiles, printReport } = require('./nodeUtils');
+const { printConfig, printSummary, resolveFiles, printReport, abort } = require('./nodeUtils');
 const nodeLoader = require('./loader/node');
 const { getSummary } = require('./utils');
 const lint = require('./lint');
@@ -29,8 +29,7 @@ async function run() {
 
 	// Abort if no files have been provided
 	if (config.files.length === 0) {
-		console.error('No path or URL specified.');
-		process.exit(1);
+		abort('No path or URL specified.');
 	}
 
 	config.depth = config.depth >= 0 ? config.depth : -1;
@@ -49,8 +48,7 @@ async function run() {
 			config.schemas = normalizePath(config.schemas);
 		}
 		else {
-			console.error('Schema folder is not a directory');
-			process.exit(1);
+			abort('Schema folder is not a directory');
 		}
 	}
 

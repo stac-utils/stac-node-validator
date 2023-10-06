@@ -19,12 +19,12 @@ function printConfig(config) {
 
 function printSummary(summary) {
 	console.group(`Summary (${summary.total})`);
-	console.info("Valid: " + summary.valid);
-	console.info("Invalid: " + summary.invalid);
+	console.log("Valid: " + summary.valid);
+	console.log("Invalid: " + summary.invalid);
 	if (summary.malformed !== null) {
-		console.info("Malformed: " + summary.malformed);
+		console.log("Malformed: " + summary.malformed);
 	}
-	console.info("Skipped: " + summary.skipped);
+	console.log("Skipped: " + summary.skipped);
 	console.groupEnd();
 }
 
@@ -37,7 +37,7 @@ function printLint(lint, config) {
 	if (!lint) {
 		if (config.lint || config.format) {
 			console.group(title);
-			console.warn('Not supported for remote files');
+			console.log('Not supported for remote files');
 			console.groupEnd();
 		}
 		return;
@@ -46,18 +46,18 @@ function printLint(lint, config) {
 	if (config.verbose) {
 		console.group(title);
 		if (lint.valid) {
-			console.info('File is well-formed');
+			console.log('File is well-formed');
 		}
 		else {
 			if (lint.fixed) {
-				console.info('File was malformed -> fixed the issue');
+				console.log('File was malformed -> fixed the issue');
 			}
 			else {
-				console.warn('File is malformed -> use `--format` to fix the issue');
+				console.log('File is malformed -> use `--format` to fix the issue');
 			}
 		}
 		if (lint.error) {
-			console.warn(lint.error);
+			console.log(lint.error);
 		}
 		if (lint.diff) {
 			console.groupCollapsed("File Diff");
@@ -68,9 +68,9 @@ function printLint(lint, config) {
 	}
 	else if (!lint.valid && !lint.fixed) {
 		console.group(title);
-		console.warn('File is malformed -> use `--format` to fix the issue');
+		console.log('File is malformed -> use `--format` to fix the issue');
 		if (lint.error) {
-			console.warn(lint.error);
+			console.log(lint.error);
 		}
 		console.groupEnd();
 	}
@@ -88,7 +88,7 @@ function printReport(report, config) {
 	}
 
 	if (report.messages) {
-		report.messages.forEach(str => console.info(str));
+		report.messages.forEach(str => console.log(str));
 	}
 
 	if (!report.apiList) {
@@ -106,7 +106,7 @@ function printReport(report, config) {
 				console.groupEnd();
 			}
 			else {
-				console.info("Extensions: None");
+				console.log("Extensions: None");
 			}
 		}
 		if (config.custom) {
@@ -160,7 +160,7 @@ function printAjvValidationResult(result, category, reportValid, config) {
 				})
 				.map(error => makeAjvErrorMessage(error)) // Convert to string
 				.filter((value, i, array) => array.indexOf(value) === i) // Remove duplicates
-				.forEach((msg, i) => console.warn(`${i+1}. ${msg}`)); // Print it as list
+				.forEach((msg, i) => console.log(`${i+1}. ${msg}`)); // Print it as list
 		}
 		console.groupEnd();
 	}
