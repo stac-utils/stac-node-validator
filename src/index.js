@@ -180,7 +180,7 @@ async function validateOne(source, config, report = null) {
 			return report;
 	}
 		
-	// Validate against tzhe core schemas
+	// Validate against the core schemas
 	await validateSchema('core', data.type, data, report, config);
 
 	// Get all extension schemas to validate against
@@ -235,7 +235,7 @@ async function validateSchema(key, schema, data, report, config) {
 	}
 
 	// Validate
-	const setValidity = (schema, errors = []) => {
+	const setValidity = (errors = []) => {
 		if (report.valid !== false) {
 			report.valid = errors.length === 0;
 		}
@@ -253,13 +253,13 @@ async function validateSchema(key, schema, data, report, config) {
 		const validate = await loadSchema(config, schemaId);
 		const valid = validate(data);
 		if (valid) {
-			setValidity(schema);
+			setValidity();
 		}
 		else {
-			setValidity(schema, validate.errors);
+			setValidity(validate.errors);
 		}
 	} catch (error) {
-		setValidity(schema, [{
+		setValidity([{
 			message: error.message
 		}]);
 	}
