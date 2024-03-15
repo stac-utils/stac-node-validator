@@ -82,11 +82,37 @@ function getSummary(result, config) {
 	return summary;
 }
 
+function makeAjvErrorMessage(error) {
+	let message = error.message;
+	if (isObject(error.params) && Object.keys(error.params).length > 0) {
+		let params = Object.entries(error.params)
+			.map(([key, value]) => {
+				let label = key.replace(/([^A-Z]+)([A-Z])/g, "$1 $2").toLowerCase();
+				return `${label}: ${value}`;
+			})
+			.join(', ')
+		message += ` (${params})`;
+	}
+	if (error.instancePath) {
+		return `${error.instancePath} ${message}`;
+	}
+	else if (error.schemaPath) {
+		return `${message}, for schema ${error.schemaPath}`;
+	}
+	else if (message) {
+		return message;
+	}
+	else {
+		return String(error);
+	}
+}
+
 module.exports = {
 	createAjv,
 	getSummary,
 	isObject,
 	isUrl,
 	loadSchemaFromUri,
+	makeAjvErrorMessage,
 	normalizePath
 };

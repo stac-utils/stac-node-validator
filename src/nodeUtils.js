@@ -2,7 +2,7 @@ const klaw = require('klaw');
 const fs = require('fs-extra');
 const path = require('path');
 
-const { isUrl, isObject } = require('./utils');
+const { isUrl, makeAjvErrorMessage } = require('./utils');
 
 const SCHEMA_CHOICE = ['anyOf', 'oneOf'];
 
@@ -171,31 +171,6 @@ function printAjvValidationResult(result, category, reportValid, config) {
 
 function isSchemaChoice(schemaPath) {
 	return typeof schemaPath === 'string' && schemaPath.match(/\/(one|any)Of\/\d+\//);
-}
-
-function makeAjvErrorMessage(error) {
-	let message = error.message;
-	if (isObject(error.params) && Object.keys(error.params).length > 0) {
-		let params = Object.entries(error.params)
-			.map(([key, value]) => {
-				let label = key.replace(/([^A-Z]+)([A-Z])/g, "$1 $2").toLowerCase();
-				return `${label}: ${value}`;
-			})
-			.join(', ')
-		message += ` (${params})`;
-	}
-	if (error.instancePath) {
-		return `${error.instancePath} ${message}`;
-	}
-	else if (error.schemaPath) {
-		return `${message}, for schema ${error.schemaPath}`;
-	}
-	else if (message) {
-		return message;
-	}
-	else {
-		return String(error);
-	}
 }
 
 async function resolveFiles(files, depth = -1) {
