@@ -1,4 +1,4 @@
-const app = require('../index');
+const app = require('../src/index');
 const { version } = require('../package.json');
 const fs = require('fs/promises');
 const { exec } = require("child_process");

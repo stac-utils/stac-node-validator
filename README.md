@@ -6,11 +6,11 @@ See the [STAC Validator Comparison](COMPARISON.md) for the features supported by
 
 ## Versions
 
-**Current version: 1.3.0**
+**Current version: 2.0.0-beta.7**
 
 | STAC Node Validator Version | Supported STAC Versions |
 | --------------------------- | ----------------------- |
-| 1.1.0 / 1.2.x               | >= 1.0.0-rc.1           |
+| 1.1.0 / 1.2.x / 2.x.x       | >= 1.0.0-rc.1           |
 | 0.4.x / 1.0.x               | >= 1.0.0-beta.2 and < 1.0.0-rc.3 |
 | 0.3.0                       | 1.0.0-beta.2            |
 | 0.2.1                       | 1.0.0-beta.1            |
@@ -44,6 +44,7 @@ Further options to add to the commands above:
 - Add `--strict` to enable strict mode in validation for schemas and numbers (as defined by [ajv](https://ajv.js.org/strict-mode.html) for options `strictSchema`, `strictNumbers` and `strictTuples`)
 - To lint local JSON files: `--lint` (add `--verbose` to get a diff with the changes required)
 - To format / pretty-print local JSON files: `--format` (Attention: this will override the source files without warning!)
+- To run custom validation code: `--custom ./path/to/validation.js` - The validation.js needs to contain a class that implements the `BaseValidator` interface. See [custom.example.js](./custom.example.js) for an example.
 
 **Note on API support:** Validating lists of STAC items/collections (i.e. `GET /collections` and `GET /collections/:id/items`) is partially supported.
 It only checks the contained items/collections, but not the other parts of the response (e.g. `links`).
@@ -51,34 +52,11 @@ It only checks the contained items/collections, but not the other parts of the r
 ### Config file
 
 You can also pass a config file via the `--config` option. Simply pass a file path as value.
-Parameters set via CLI will override the corresponding setting in the config file.
-Make sure to use the value `false` to override boolean flags that are set to `true` in the config file.
+Parameters set via CLI will not override the corresponding setting in the config file.
 
 The config file uses the same option names as above.
 To specify the files to be validated, add an array with paths.
 The schema map is an object instead of string separated with a `=` character.
-
-**Example:**
-```json
-{
-  "files": [
-    "/path/to/your/catalog.json",
-    "/path/to/your/item.json"
-  ],
-  "schemas": "/path/to/stac/folder",
-  "schemaMap": {
-    "https://stac-extensions.github.io/foobar/v1.0.0/schema.json": "./json-schema/schema.json"
-  },
-  "ignoreCerts": false,
-  "verbose": false,
-  "lint": true,
-  "format": false,
-  "strict": true,
-	"all": false
-}
-```
-
-You could now override some options as follows in CLI: `stac-node-validator example.json --config /path/to/config.json --lint false`
 
 ### Development
 

@@ -1,2 +1,3 @@
 #!/usr/bin/env node
-require('../index.js')()
+const runCLI = require('../src/cli.js');
+runCLI();
