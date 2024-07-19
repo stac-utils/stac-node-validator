@@ -284,6 +284,9 @@ async function loadSchema(config, schemaId) {
 		console.trace(error);
 		throw new Error(`Schema at '${schemaId}' not found. Please ensure all entries in 'stac_extensions' are valid.`);
 	}
+	if (!json.$id) {
+		json.$id = schemaId;
+	}
 
 	schema = config.ajv.getSchema(json.$id);
 	if (schema) {
