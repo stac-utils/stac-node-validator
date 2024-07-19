@@ -1,4 +1,4 @@
-const { STAC } = import('stac-js');
+// const { STAC } = require('stac-js');
 
 class BaseValidator {
 
