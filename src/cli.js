@@ -5,7 +5,7 @@ const ConfigSource = require('./config.js');
 const validate = require('../src/index.js');
 const { printConfig, printSummary, resolveFiles, printReport, abort } = require('./nodeUtils');
 const nodeLoader = require('./loader/node');
-const { getSummary } = require('./utils');
+const { getSummary, normalizePath } = require('./utils');
 const lint = require('./lint');
 
 
