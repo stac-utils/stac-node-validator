@@ -1,6 +1,6 @@
 {
   "name": "stac-node-validator",
-  "version": "2.0.0-beta.8",
+  "version": "2.0.0-beta.9",
   "description": "STAC Validator for NodeJS",
   "author": "Matthias Mohr",
   "license": "Apache-2.0",
@@ -38,6 +38,7 @@
     "jest-diff": "^29.0.1",
     "klaw": "^4.0.1",
     "stac-js": "^0.0.8",
+    "uri-js": "^4.4.1",
     "yargs": "^17.7.2"
   },
   "devDependencies": {
