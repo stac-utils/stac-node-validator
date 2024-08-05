@@ -66,7 +66,7 @@ function getSummary(result, config) {
 		summary.valid = result.children.filter(c => c.valid === true).length;
 		summary.invalid = result.children.filter(c => c.valid === false).length;
 		if (config.lint || config.format) {
-			summary.malformed = result.children.filter(c => c.lint && c.lint.valid).length;
+			summary.malformed = result.children.filter(c => c.lint && !c.lint.valid).length;
 		}
 		summary.skipped = result.children.filter(c => c.skipped).length;
 	}
