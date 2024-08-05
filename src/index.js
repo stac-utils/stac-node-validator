@@ -131,7 +131,16 @@ async function validateOne(source, config, report = null) {
 	if (!report.id) {
 		if (typeof data === 'string') {
 			report.id = normalizePath(data);
-			data = await config.loader(data);
+			try {
+				data = await config.loader(data);
+			} catch (error) {
+				report.valid = false;
+				report.results.core.push({
+					instancePath: "",
+					message: error.message
+				});
+				return report;
+			}
 		}
 		else {
 			report.id = data.id;
@@ -281,7 +290,6 @@ async function loadSchema(config, schemaId) {
 	try {
 		json = await loadSchemaFromUri(schemaId, config);
 	} catch (error) {
-		console.trace(error);
 		throw new Error(`Schema at '${schemaId}' not found. Please ensure all entries in 'stac_extensions' are valid.`);
 	}
 	if (!json.$id) {
