@@ -72,6 +72,9 @@ async function validate(data, config) {
 	};
 	config = Object.assign({}, defaultConfig, config);
 	config.ajv = createAjv(config);
+	if (config.customValidator) {
+		config.ajv = await config.customValidator.createAjv(config.ajv);
+	}
 
 	let report = createReport();
 	if (typeof data === 'string') {

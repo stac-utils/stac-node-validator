@@ -8,6 +8,10 @@ class BaseValidator {
 	constructor() {
 	}
 
+	async createAjv(ajv) {
+		return ajv;
+	}
+
 	/**
 	 * Any preprocessing work you want to do on the data.
 	 * 
