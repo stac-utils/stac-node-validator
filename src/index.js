@@ -160,6 +160,13 @@ async function validateOne(source, config, report = null) {
 		report = await config.lintFn(source, report, config);
 	}
 
+	if (config.customValidator) {
+		const bypass = await config.customValidator.bypassValidation(data, report, config);
+		if (bypass) {
+			return bypass;
+		}
+	}
+
 	// Check stac_version
 	if (typeof data.stac_version !== 'string') {
 		report.skipped = true;
