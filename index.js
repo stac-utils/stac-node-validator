@@ -1,4 +1,5 @@
-const Ajv = require('ajv');
+const Ajv2019 = require("ajv/dist/2019")
+const draft7MetaSchema = require("ajv/dist/refs/json-schema-draft-07.json")
 const axios = require('axios');
 const addFormats = require('ajv-formats');
 const iriFormats = require('./iri.js');
@@ -12,13 +13,14 @@ const { version } = require('./package.json');
 
 let DEBUG = false;
 
-let ajv = new Ajv({
+let ajv = new Ajv2019({
 	formats: iriFormats,
 	allErrors: true,
 	strict: false,
 	logger: DEBUG ? console : false,
 	loadSchema: loadJsonFromUri
 });
+ajv.addMetaSchema(draft7MetaSchema);
 addFormats(ajv);
 
 let verbose = false;
