@@ -1,6 +1,6 @@
 const versions = require('compare-versions');
 
-const { createAjv, isHttpUrl, loadSchemaFromUri, normalizePath, isObject } = require('./utils');
+const { createAjv, isHttpUrl, loadSchema, normalizePath, isObject } = require('./utils');
 const defaultLoader = require('./loader/default');
 const BaseValidator = require('./baseValidator');
 const Test = require('./test');
@@ -289,29 +289,6 @@ function summarizeResults(report) {
 		report.valid = Boolean(report.children.every(result => result.valid));
 	}
 	return report;
-}
-
-async function loadSchema(config, schemaId) {
-	let schema = config.ajv.getSchema(schemaId);
-	if (schema) {
-		return schema;
-	}
-
-	try {
-		json = await loadSchemaFromUri(schemaId, config);
-	} catch (error) {
-		throw new Error(`Schema at '${schemaId}' not found. Please ensure all entries in 'stac_extensions' are valid.`);
-	}
-	if (!json.$id) {
-		json.$id = schemaId;
-	}
-
-	schema = config.ajv.getSchema(json.$id);
-	if (schema) {
-		return schema;
-	}
-
-	return await config.ajv.compileAsync(json);
 }
 
 module.exports = validate;

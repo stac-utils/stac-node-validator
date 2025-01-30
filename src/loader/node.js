@@ -13,10 +13,12 @@ async function loader(uri) {
 		}
 		else {
 			const url = URL.parse(uri);
-			if (url && url.protocol && url.protocol !== 'file:' && url.protocol.length > 1) {
+			// url.protocol.length > 2 check that it's not a Windows path, e.g. c: as in c://foo/bar
+			if (url && url.protocol && url.protocol.length > 2 && url.protocol !== 'file:') {
 				throw new Error(`Protocol not supported: ${url.protocol}`);
 			}
 			else {
+				const path = require('path');
 				throw new Error(`File not found: ${uri}`);
 			}
 		}

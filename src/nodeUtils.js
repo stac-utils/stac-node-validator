@@ -184,7 +184,8 @@ async function resolveFiles(files, depth = -1) {
 	}
 	for (const file of files) {
 		const url = URL.parse(file);
-		if (url && url.protocol && url.protocol.length > 1 && url.protocol !== 'file:') {
+		// url.protocol.length > 2 check that it's not a Windows path, e.g. c: as in c://foo/bar
+		if (url && url.protocol && url.protocol.length > 2 && url.protocol !== 'file:') {
 			if (SUPPORTED_PROTOCOLS.includes(url.protocol)) {
 				result.files.push(file);
 				continue;

@@ -34,19 +34,44 @@ function createAjv(config) {
 	return instance;
 }
 
+async function loadSchema(config, schemaId) {
+	let schema = config.ajv.getSchema(schemaId);
+	if (schema) {
+		return schema;
+	}
+
+	try {
+		json = await loadSchemaFromUri(schemaId, config);
+	} catch (error) {
+		throw new Error(`Schema at '${schemaId}' not found. Please ensure all entries in 'stac_extensions' are valid.`);
+	}
+
+	schema = config.ajv.getSchema(json.$id);
+	if (schema) {
+		return schema;
+	}
+
+	return await config.ajv.compileAsync(json);
+}
+
 async function loadSchemaFromUri(uri, config) {
+	let newUri = uri;
 	if (isObject(config.schemaMap)) {
 		const patterns = Object.entries(config.schemaMap);
 		const match = patterns.find(map => uri.startsWith(map[0]));
 		if (match) {
 			const [pattern, target] = match;
-			uri = path.join(target, uri.substring(pattern.length));
+			newUri = path.join(target, uri.substring(pattern.length));
 		}
 	}
 	if (config.schemas) {
-		uri = uri.replace(/^https:\/\/schemas\.stacspec\.org\/v[^\/]+/, config.schemas);
+		newUri = newUri.replace(/^https:\/\/schemas\.stacspec\.org\/v[^\/]+/, config.schemas);
 	}
-	return await config.loader(uri);
+	const schema = await config.loader(newUri);
+	if (!schema.$id) {
+		schema.$id = uri;
+	}
+	return schema;
 }
 
 function normalizePath(path) {
@@ -113,6 +138,7 @@ module.exports = {
 	getSummary,
 	isObject,
 	isHttpUrl,
+	loadSchema,
 	loadSchemaFromUri,
 	makeAjvErrorMessage,
 	normalizePath,
