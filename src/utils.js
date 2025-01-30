@@ -1,6 +1,7 @@
 const Ajv = require('ajv');
 const addFormats = require('ajv-formats');
 const iriFormats = require('./iri');
+const path = require('path');
 
 const SUPPORTED_PROTOCOLS = ['http', 'https'];
 
@@ -39,10 +40,15 @@ function createAjv(config) {
 }
 
 async function loadSchemaFromUri(uri, config) {
-	if (isObject(config.schemaMap) && config.schemaMap[uri]) {
-		uri = config.schemaMap[uri];
+	if (isObject(config.schemaMap)) {
+		const patterns = Object.entries(config.schemaMap);
+		const match = patterns.find(map => uri.startsWith(map[0]));
+		if (match) {
+			const [pattern, target] = match;
+			uri = path.join(target, uri.substring(pattern.length));
+		}
 	}
-	else if (config.schemas) {
+	if (config.schemas) {
 		uri = uri.replace(/^https:\/\/schemas\.stacspec\.org\/v[^\/]+/, config.schemas);
 	}
 	return await config.loader(uri);
