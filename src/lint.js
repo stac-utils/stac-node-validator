@@ -1,6 +1,6 @@
 const fs = require('fs-extra');
 const { diffStringsUnified } = require('jest-diff');
-const { isUrl, isObject } = require('./utils');
+const { isHttpUrl, isObject } = require('./utils');
 
 /**
  * @typedef LintResult
@@ -20,7 +20,7 @@ async function lint(file, config) {
 	if (isObject(file)) {
 		return null;
 	}
-	else if (isUrl(file)) {
+	else if (isHttpUrl(file)) {
 		return null;
 	}
 

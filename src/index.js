@@ -1,6 +1,6 @@
 const versions = require('compare-versions');
 
-const { createAjv, isUrl, loadSchemaFromUri, normalizePath, isObject } = require('./utils');
+const { createAjv, isHttpUrl, loadSchemaFromUri, normalizePath, isObject } = require('./utils');
 const defaultLoader = require('./loader/default');
 const BaseValidator = require('./baseValidator');
 const Test = require('./test');
@@ -248,7 +248,7 @@ async function validateSchema(key, schema, data, report, config) {
 			schemaId = `https://schemas.stacspec.org/v${report.version}/${type}-spec/json-schema/${type}.json`;
 			break;
 		default: // extension
-			if (isUrl(schema)) {
+			if (isHttpUrl(schema)) {
 				schemaId = schema;
 			}
 	}
@@ -267,7 +267,7 @@ async function validateSchema(key, schema, data, report, config) {
 	};
 	try {
 		if (key !== 'core' && !schemaId) {
-			throw new Error("'stac_extensions' must contain a valid schema URL, not a shortcut.");
+			throw new Error("'stac_extensions' must contain a valid HTTP(S) URL to a schema.");
 		}
 		const validate = await loadSchema(config, schemaId);
 		const valid = validate(data);

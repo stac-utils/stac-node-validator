@@ -3,21 +3,16 @@ const addFormats = require('ajv-formats');
 const iriFormats = require('./iri');
 const path = require('path');
 
-const SUPPORTED_PROTOCOLS = ['http', 'https'];
+const SUPPORTED_PROTOCOLS = ['http:', 'https:'];
 
 function isObject(obj) {
 	return (typeof obj === 'object' && obj === Object(obj) && !Array.isArray(obj));
 }
 
-function isUrl(uri) {
-	if (typeof uri === 'string') {
-		let part = uri.match(/^(\w+):\/\//i);
-		if (part) {
-			if (!SUPPORTED_PROTOCOLS.includes(part[1].toLowerCase())) {
-				throw new Error(`Given protocol "${part[1]}" is not supported.`);
-			}
-			return true;
-		}
+function isHttpUrl(url) {
+	const parsed = URL.parse(url);
+	if (parsed && SUPPORTED_PROTOCOLS.includes(parsed.protocol)) {
+		return true;
 	}
 	return false;
 }
@@ -117,8 +112,9 @@ module.exports = {
 	createAjv,
 	getSummary,
 	isObject,
-	isUrl,
+	isHttpUrl,
 	loadSchemaFromUri,
 	makeAjvErrorMessage,
-	normalizePath
+	normalizePath,
+	SUPPORTED_PROTOCOLS
 };

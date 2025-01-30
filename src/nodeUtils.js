@@ -2,7 +2,7 @@ const klaw = require('klaw');
 const fs = require('fs-extra');
 const path = require('path');
 
-const { isUrl, makeAjvErrorMessage } = require('./utils');
+const { makeAjvErrorMessage, isHttpUrl, SUPPORTED_PROTOCOLS } = require('./utils');
 
 const SCHEMA_CHOICE = ['anyOf', 'oneOf'];
 
@@ -123,7 +123,7 @@ function printAjvValidationResult(result, category, reportValid, config) {
 	if (!category) {
 		return;
 	}
-	if (!config.verbose && isUrl(category)) {
+	if (!config.verbose && isHttpUrl(category)) {
 		const match = category.match(/^https?:\/\/stac-extensions\.github\.io\/([^/]+)\/v?([^/]+)(?:\/([^/.]+))?\/schema/);
 		if (match) {
 			let title = match[1];
@@ -184,8 +184,8 @@ async function resolveFiles(files, depth = -1) {
 	}
 	for (const file of files) {
 		const url = URL.parse(file);
-		if (url && url.protocol !== 'file:') {
-			if (['https:', 'http:'].includes(url.protocol)) {
+		if (url && url.protocol && url.protocol.length > 1 && url.protocol !== 'file:') {
+			if (SUPPORTED_PROTOCOLS.includes(url.protocol)) {
 				result.files.push(file);
 				continue;
 			}
