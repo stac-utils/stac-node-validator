@@ -22,7 +22,7 @@ See the [STAC Validator Comparison](COMPARISON.md) for the features supported by
 
 ## Setup
 
-1. Install [node and npm](https://nodejs.org) - should run with any version >= 16. Older versions may still work, but no guarantee.
+1. Install [node and npm](https://nodejs.org) - should run with any version >= 22.1.0.
 2. `npm install -g stac-node-validator` to install the library permanently
 
 ## Usage
