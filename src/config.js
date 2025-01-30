@@ -1,6 +1,7 @@
 const yargs = require('yargs/yargs');
 const { hideBin } = require('yargs/helpers');
 const fs = require('fs-extra');
+const path = require('path');
 
 const { strArrayToObject } = require('./nodeUtils');
 
@@ -34,7 +35,7 @@ function fromCLI() {
 			type: 'array',
 			default: [],
 			requiresArg: true,
-			description: 'Validate against a specific local schema (e.g. an external extension). Provide the schema URI and the local path separated by an equal sign.\nExample: https://stac-extensions.github.io/foobar/v1.0.0/schema.json=./json-schema/schema.json',
+			description: 'Validate against a specific local schema (e.g. an external extension). Provide the schema URI and the local path separated by an equal sign.\nExample: https://stac-extensions.github.io/foobar/v1.0.0/schema.json=./json-schema/schema.json\nThis can also be a partial URL and path so that all children are also mapped.\nExample: https://stac-extensions.github.io/foobar/=./json-schema/',
 			coerce: strArrayToObject
 		})
 		.option('custom', {
@@ -67,7 +68,7 @@ function fromCLI() {
 			alias: 'c',
 			type: 'string',
 			default: null,
-			description: 'Load the options from a config file. CLI Options override config options.'
+			description: 'Load the options from a config file (.js or .json). CLI options override config options.'
 		})
 		.version()
 		.parse()
@@ -79,17 +80,23 @@ function fromCLI() {
 	return config;
 }
 
-async function fromFile(path) {
-	let configFile;
-	try {
-		configFile = await fs.readFile(path, "utf8");
-	} catch (error) {
-		throw new Error('Config file does not exist.');
+async function fromFile(filepath) {
+	filepath = path.resolve(filepath);
+	if (filepath.endsWith('.js')) {
+		return require(filepath);
 	}
-	try {
-		return JSON.parse(configFile);
-	} catch (error) {
-		throw new Error('Config file is invalid JSON.');
+	else {
+		let configFile;
+		try {
+			configFile = await fs.readFile(filepath, "utf8");
+		} catch (error) {
+			throw new Error('Config file does not exist.');
+		}
+		try {
+			return JSON.parse(configFile);
+		} catch (error) {
+			throw new Error('Config file is invalid JSON.');
+		}
 	}
 }
 
