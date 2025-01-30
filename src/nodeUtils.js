@@ -174,33 +174,45 @@ function isSchemaChoice(schemaPath) {
 }
 
 async function resolveFiles(files, depth = -1) {
-	const resolved = [];
+	const result = {
+		files: [],
+		error: {}
+	};
 	const extensions = [".geojson", ".json"];
 	const klawOptions = {
 		depthLimit: depth
 	}
 	for (const file of files) {
-		if (isUrl(file)) {
-			resolved.push(file);
-			continue;
-		}
-
-		// Special handling for reading directories
-		const stat = await fs.lstat(file);
-		if (stat.isDirectory()) {
-			;
-			for await (const child of klaw(file, klawOptions)) {
-				const ext = path.extname(child.path).toLowerCase();
-				if (extensions.includes(ext)) {
-					resolved.push(child.path);
+		const url = URL.parse(file);
+		if (url && url.protocol !== 'file:') {
+			if (['https:', 'http:'].includes(url.protocol)) {
+				result.files.push(file);
+				continue;
+			}
+			else {
+				result.error[file] = new Error(`Protocol "${url.protocol}" is not supported.`);
+			}
+		} else {
+			try {
+				const stat = await fs.lstat(file);
+				if (stat.isDirectory()) {
+					// Special handling for reading directories
+					for await (const child of klaw(file, klawOptions)) {
+						const ext = path.extname(child.path).toLowerCase();
+						if (extensions.includes(ext)) {
+							result.files.push(child.path);
+						}
+					}
 				}
+				else {
+					result.files.push(file);
+				}
+			} catch (error) {
+				result.error[file] = error;
 			}
 		}
-		else {
-			resolved.push(file);
-		}
 	}
-	return resolved;
+	return result;
 }
 
 function strArrayToObject(list, sep = "=") {

@@ -35,10 +35,20 @@ async function run() {
 	config.depth = config.depth >= 0 ? config.depth : -1;
 
 	// Verify files exist / read folders
-	let data = await resolveFiles(config.files, config.depth);
+	const files = await resolveFiles(config.files, config.depth);
 	delete config.files;
-	if (data.length === 1) {
+	for (let file in files.error) {
+		const error = files.error[file];
+		console.warn(`${file}: Can't be validated for the following reason: ${error}`);
+	}
+	if (files.files.length === 0) {
+		abort('No files found that are suitable for validation.');
+	}
+	else if (files.files.length === 1) {
 		data = data[0];
+	}
+	else {
+		data = files.files;
 	}
 
 	// Resolve schema folder
