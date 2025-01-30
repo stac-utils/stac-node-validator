@@ -13,7 +13,7 @@ async function loader(uri) {
 		}
 		else {
 			const url = URL.parse(uri);
-			if (url.protocol && url.protocol !== 'file:' && url.protocol.length > 1) {
+			if (url && url.protocol && url.protocol !== 'file:' && url.protocol.length > 1) {
 				throw new Error(`Protocol not supported: ${url.protocol}`);
 			}
 			else {
