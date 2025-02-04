@@ -45,7 +45,7 @@ async function run() {
 		abort('No files found that are suitable for validation.');
 	}
 	else if (files.files.length === 1) {
-		data = data[0];
+		data = files.files[0];
 	}
 	else {
 		data = files.files;
