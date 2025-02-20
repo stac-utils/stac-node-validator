@@ -1,4 +1,5 @@
 // const { STAC } = require('stac-js');
+const Test = require('./test');
 
 class BaseValidator {
 
@@ -54,6 +55,22 @@ class BaseValidator {
 	 */
 	async afterValidation(data, test, report, config) {
 
+	}
+
+	async testFn(report, fn) {
+		try {
+			const test = new Test();
+			await fn(report, test);
+			report.results.custom = test.errors;
+		} catch (error) {
+			report.results.custom = [
+				error
+			];
+		} finally {
+			if (report.results.custom.length > 0) {
+				report.valid = false;
+			}
+		}
 	}
 
 }

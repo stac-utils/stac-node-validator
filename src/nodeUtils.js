@@ -109,7 +109,7 @@ function printReport(report, config) {
 				console.log("Extensions: None");
 			}
 		}
-		if (config.custom) {
+		if (config.custom && (report.results.custom.length > 0 || report.children.length === 0)) {
 			printAjvValidationResult(report.results.custom, 'Custom', report.valid, config);
 		}
 	}
@@ -120,9 +120,6 @@ function printReport(report, config) {
 }
 
 function printAjvValidationResult(result, category, reportValid, config) {
-	if (!category) {
-		return;
-	}
 	if (!config.verbose && isHttpUrl(category)) {
 		const match = category.match(/^https?:\/\/stac-extensions\.github\.io\/([^/]+)\/v?([^/]+)(?:\/([^/.]+))?\/schema/);
 		if (match) {

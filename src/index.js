@@ -58,6 +58,20 @@ function createReport() {
 	return result;
 }
 
+async function loadAndReport(config, data, report) {
+	try {
+		data = await config.loader(data);
+	} catch (error) {
+		report.valid = false;
+		report.type = "File";
+		report.results.core.push({
+			instancePath: "",
+			message: error.message
+		});
+	}
+	return data;
+}
+
 /**
  * @param {Array.<Object>|Array.<string>|Object|string} data The data to validate
  * @param {Config} config The configuration object
@@ -79,7 +93,7 @@ async function validate(data, config) {
 	let report = createReport();
 	if (typeof data === 'string') {
 		report.id = normalizePath(data);
-		data = await config.loader(data);
+		data = loadAndReport(config, data, report);
 	}
 
 	if (isObject(data)) {
@@ -114,7 +128,7 @@ async function validate(data, config) {
 		return summarizeResults(report);
 	}
 	else {
-		return null;
+		return report;
 	}
 }
 
@@ -134,14 +148,8 @@ async function validateOne(source, config, report = null) {
 	if (!report.id) {
 		if (typeof data === 'string') {
 			report.id = normalizePath(data);
-			try {
-				data = await config.loader(data);
-			} catch (error) {
-				report.valid = false;
-				report.results.core.push({
-					instancePath: "",
-					message: error.message
-				});
+			data = await loadAndReport(config, data, report);
+			if (report.valid === false) {
 				return report;
 			}
 		}
@@ -218,19 +226,7 @@ async function validateOne(source, config, report = null) {
 	if (config.customValidator) {
 		const { default: create } = await import('stac-js');
 		const stac = create(data, false, false);
-		try {
-			const test = new Test();
-			await config.customValidator.afterValidation(stac, test, report, config);
-			report.results.custom = test.errors;
-		} catch (error) {
-			report.results.custom = [
-				error
-			];
-		} finally {
-			if (report.results.custom.length > 0) {
-				report.valid = false;
-			}
-		}
+		await config.customValidator.testFn(report, async (report, test) => await config.customValidator.afterValidation(stac, test, report, config))
 	}
 
 	return report;
