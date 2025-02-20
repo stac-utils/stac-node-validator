@@ -120,6 +120,9 @@ function printReport(report, config) {
 }
 
 function printAjvValidationResult(result, category, reportValid, config) {
+	if (!category) {
+		return;
+	}
 	if (!config.verbose && isHttpUrl(category)) {
 		const match = category.match(/^https?:\/\/stac-extensions\.github\.io\/([^/]+)\/v?([^/]+)(?:\/([^/.]+))?\/schema/);
 		if (match) {
