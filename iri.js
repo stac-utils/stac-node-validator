@@ -20,7 +20,7 @@ module.exports = {
 		}
 
 		const iri = parse(value);
-		if ((iri.reference === 'absolute' || iri.reference === 'uri') && iri.scheme && typeof iri.host !== 'undefined') {
+		if ((iri.reference === 'absolute' || iri.reference === 'uri') && iri.scheme && (iri.host || (iri.scheme === 'file' && iri.path))) {
 			return true;
 		}
 
