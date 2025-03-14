@@ -17,13 +17,13 @@ See the [STAC Validator Comparison](COMPARISON.md) for the features supported by
 
 ## Quick Start
 
-1. Install a recent version of [node and npm](https://nodejs.org)
-2. `npx stac-node-validator /path/to/your/file-or-folder` to temporarily install the library and validate the provided file for folder. See the chapters below for advanced usage options.
+1. `npx stac-node-validator /path/to/your/file-or-folder` to temporarily install the library and validate the provided file for folder. See the chapters below for advanced usage options.
 
 ## Setup
 
-1. Install [node and npm](https://nodejs.org) - should run with any version >= 22.1.0.
-2. `npm install -g stac-node-validator` to install the library permanently
+1. Install a recent version of [node](https://nodejs.org) (>= 22.1.0) and npm
+2. For CLI use: `npm install -g stac-node-validator`
+   For programmatic use in another project: `npm install stac-node-validator`
 
 ## Usage
 
