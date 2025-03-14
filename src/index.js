@@ -93,7 +93,7 @@ async function validate(data, config) {
 	let report = createReport();
 	if (typeof data === 'string') {
 		report.id = normalizePath(data);
-		data = loadAndReport(config, data, report);
+		data = await loadAndReport(config, data, report);
 	}
 
 	if (isObject(data)) {
