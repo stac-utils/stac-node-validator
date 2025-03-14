@@ -3,8 +3,8 @@
 There are - as far as I know - three maintained validators available for STAC:
 
 1. The original [Python validator](https://github.com/sparkgeo/stac-validator)
-3. The validation functionality shipped with [PySTAC](https://github.com/stac-utils/pystac)
-4. [This Node/JavaScript validator](https://github.com/stac-utils/stac-node-validator)
+2. The validation functionality shipped with [PySTAC](https://github.com/stac-utils/pystac)
+3. [This Node/JavaScript validator](https://github.com/stac-utils/stac-node-validator)
 
 Additionally I found some tools that seem to be unmaintained: [1](https://github.com/brianbancroft/stac-validator-cli) [2](https://github.com/JamesOConnor/stac-validator)
 
@@ -14,13 +14,13 @@ Here I'd like to give an overview of what the validators are capable of and what
 
 |                            | Python Validator                           | PySTAC              | STAC Node Validator |
 | :------------------------- | ------------------------------------------ | ------------------- | ------------------- |
-| Validator Version          | 1.0.1                                      | 0.5.2               | 1.3.x               |
+| Validator Version          | 1.0.1                                      | 0.5.2               | 2.0.0               |
 | Language                   | Python 3.6                                 | Python 3            | NodeJS              |
 | CLI                        | Yes                                        | No                  | Yes                 |
-| Programmatic               | Yes                                        | Yes                 | Planned             |
-| Online                     | Yes, [staclint.com](https://staclint.com/) | No                  | Planned             |
+| Programmatic               | Yes                                        | Yes                 | Yes                 |
+| Online                     | Yes, [staclint.com](https://staclint.com/) | No                  | Yes                 |
 | Protocols supported (Read) | HTTP(S), Filesystem                        | HTTP(S), Filesystem | HTTP(S), Filesystem |
-| Gives                      | HTML / CLI / Python Output                 | Python Dict         | CLI output          |
+| Gives                      | HTML / CLI / Python                        | Python              | CLI / JavaScript    |
 
 ## Specifications supported
 
