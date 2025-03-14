@@ -8,7 +8,7 @@ const IRI = {
 		}
 
 		const iri = parse(value);
-		if ((iri.reference === 'absolute' || iri.reference === 'uri') && iri.scheme && (iri.host || iri.path)) {
+		if ((iri.reference === 'absolute' || iri.reference === 'uri') && iri.scheme && (iri.host || (iri.scheme === 'file' && iri.path))) {
 			return true;
 		}
 
@@ -20,7 +20,7 @@ const IRI = {
 		}
 
 		const iri = parse(value);
-		if ((iri.reference === 'absolute' || iri.reference === 'uri') && iri.scheme && (iri.host || iri.path)) {
+		if ((iri.reference === 'absolute' || iri.reference === 'uri') && iri.scheme && (iri.host || (iri.scheme === 'file' && iri.path))) {
 			return true;
 		}
 
